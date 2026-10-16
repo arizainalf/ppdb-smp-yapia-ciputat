@@ -1,0 +1,21 @@
+{
+  "name": "smp-yapia-ciputat-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo SIPMB SMP YAPIA Ciputat (Hono Clean Architecture Backend & React Layered Architecture Frontend)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel run dev",
+    "dev:backend": "pnpm --filter @yapia/backend dev",
+    "dev:frontend": "pnpm --filter @yapia/frontend dev",
+    "build": "pnpm --recursive run build",
+    "typecheck": "pnpm --recursive exec tsc --noEmit",
+    "clean": "pnpm --recursive exec rm -rf node_modules dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

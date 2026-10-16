@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # 1. Cloudflare Tunnel Daemon (Inbound Zero Open Ports)
+  # -------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: yapia_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - yapia-network
+    depends_on:
+      - backend
+      - vault
+
+  # -------------------------------------------------------------
+  # 2. Frontend Application (React.js SPA + Vite)
+  # -------------------------------------------------------------
+  frontend:
+    image: node:20-alpine
+    container_name: yapia_frontend
+    restart: unless-stopped
+    # Saat build image produksi:
+    # build:
+    #   context: ..
+    #   dockerfile: apps/frontend/Dockerfile
+    command: sh -c "echo 'React.js Frontend container ready' && tail -f /dev/null"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL:-https://api-ppdb.yapia.sch.id}
+    networks:
+      - yapia-network
+    expose:
+      - "3000"
+
+  # -------------------------------------------------------------
+  # 3. Backend Application (Hono API Framework - Cloudflare D1)
+  # -------------------------------------------------------------
+  backend:
+    image: node:20-alpine
+    container_name: yapia_backend
+    restart: unless-stopped
+    working_dir: /app
+    # Saat build image produksi:
+    # build:
+    #   context: ..
+    #   dockerfile: apps/backend/Dockerfile
+    command: sh -c "echo 'Backend container ready' && tail -f /dev/null"
+    environment:
+      - NODE_ENV=production
+      # Cloudflare D1 Serverless Database Credentials
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_D1_DATABASE_ID=${CLOUDFLARE_D1_DATABASE_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      # Redis Queue & Cache
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      # HashiCorp Vault (Internal Docker Network)
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROLE_ID=${VAULT_ROLE_ID:-}
+      - VAULT_SECRET_ID=${VAULT_SECRET_ID:-}
+    networks:
+      - yapia-network
+    expose:
+      - "8000"
+    depends_on:
+      redis:
+        condition: service_started
+      vault:
+        condition: service_started
+
+  # -------------------------------------------------------------
+  # 4. Secret Manager (HashiCorp Vault)
+  # -------------------------------------------------------------
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: yapia_vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_API_ADDR: "http://vault:8200"
+    volumes:
+      - vaultdata:/vault/data
+      - ./vault/config:/vault/config
+    command: server
+    networks:
+      - yapia-network
+    expose:
+      - "8200"
+
+  # -------------------------------------------------------------
+  # 5. Cache & Queue (Redis 7)
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: yapia_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redisdata:/data
+    networks:
+      - yapia-network
+    expose:
+      - "6379"
+
+volumes:
+  vaultdata:
+    name: yapia_vault_data
+  redisdata:
+    name: yapia_redis_data
+
+networks:
+  yapia-network:
+    name: yapia-bridge-network
+    driver: bridge
