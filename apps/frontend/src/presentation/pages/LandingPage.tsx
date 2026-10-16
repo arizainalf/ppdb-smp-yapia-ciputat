@@ -4,6 +4,8 @@ import {
   Users,
   Clock,
   ArrowRight,
+  Sparkles,
+  CheckCircle,
 } from 'lucide-react';
 import { Button } from '../components/common/Button.js';
 
@@ -312,11 +314,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
         </div>
+      </section>
 
-        <div className="mt-8 text-center">
-          <Button onClick={onStartRegistration} className="px-8 py-3 text-base">
-            Mulai Pengisian Formulir Sekarang &rarr;
-          </Button>
+      {/* 5. CALL TO ACTION (CTA) HERO BANNER */}
+      <section className="max-w-5xl mx-auto px-4">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-8 sm:p-12 shadow-2xl border border-emerald-700/60">
+          {/* Background Ambient Glow */}
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold tracking-wide backdrop-blur-xs">
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS</span>
+            </div>
+
+            <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+              Siap Mendaftarkan Putra/Putri Anda di SMP YAPIA Ciputat?
+            </h3>
+
+            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl mx-auto leading-relaxed">
+              Pengisian formulir praktis dalam 5 tahap, berkas diunggah langsung melalui ponsel, dan nomor registrasi resmi diterbitkan secara instan.
+            </p>
+
+            {/* High-Impact CTA Button Group */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+              <Button
+                onClick={onStartRegistration}
+                className="w-full sm:w-auto px-8 py-4 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-base rounded-2xl shadow-xl shadow-emerald-950/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer ring-4 ring-emerald-400/20"
+              >
+                <span>Mulai Pengisian Formulir Sekarang</span>
+                <ArrowRight className="w-5 h-5 shrink-0" />
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={onCheckStatus}
+                className="w-full sm:w-auto px-6 py-4 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-sm rounded-2xl backdrop-blur-xs transition-colors cursor-pointer"
+              >
+                Sudah Mendaftar? Cek Status & SK
+              </Button>
+            </div>
+
+            {/* Value Reassurance Chips */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 pt-3 text-[11px] text-emerald-200/80 border-t border-emerald-800/40">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Pengisian 5 Menit Selesai
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Kepatuhan UU PDP No. 27/2022
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Helpdesk WhatsApp 24 Jam
+              </span>
+            </div>
+          </div>
         </div>
       </section>
     </div>
