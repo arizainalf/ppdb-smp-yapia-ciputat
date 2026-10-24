@@ -9,6 +9,7 @@ import {
   FileCheck2,
   PanelLeftClose,
   PanelLeftOpen,
+  LayoutTemplate,
 } from 'lucide-react';
 import { AdminSidebar, AdminMenuKey } from '../../components/admin/AdminSidebar.js';
 import { AdminStatsCards } from '../../components/admin/AdminStatsCards.js';
@@ -20,8 +21,11 @@ import {
 import { EksporDapodikModal } from '../../components/admin/EksporDapodikModal.js';
 import { MasterGelombangManager } from '../../components/admin/MasterGelombangManager.js';
 import { MasterUsersManager } from '../../components/admin/MasterUsersManager.js';
+import { MasterLandingContentManager } from '../../components/admin/MasterLandingContentManager.js';
+import { MasterHelpdeskManager } from '../../components/admin/MasterHelpdeskManager.js';
 import { Button } from '../../components/common/Button.js';
 import { useAuth } from '../../../application/contexts/AuthContext.js';
+import { useSearchParams } from 'react-router-dom';
 
 interface AdminPageProps {
   onBackToPublic: () => void;
@@ -29,7 +33,29 @@ interface AdminPageProps {
 
 export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic }) => {
   const { user, can } = useAuth();
-  const [activeMenu, setActiveMenu] = useState<AdminMenuKey>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab') as AdminMenuKey | null;
+  const validTabs: AdminMenuKey[] = ['overview', 'pendaftar', 'gelombang', 'users', 'content', 'helpdesk', 'dapodik'];
+  const initialTab: AdminMenuKey = (tabFromUrl && validTabs.includes(tabFromUrl)) ? tabFromUrl : 'overview';
+
+  const [activeMenu, setActiveMenuState] = useState<AdminMenuKey>(initialTab);
+
+  useEffect(() => {
+    if (tabFromUrl && validTabs.includes(tabFromUrl) && tabFromUrl !== activeMenu) {
+      setActiveMenuState(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  const setActiveMenu = (menu: AdminMenuKey) => {
+    setActiveMenuState(menu);
+    const newParams = new URLSearchParams(searchParams);
+    if (menu === 'overview') {
+      newParams.delete('tab');
+    } else {
+      newParams.set('tab', menu);
+    }
+    setSearchParams(newParams, { replace: true });
+  };
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -323,6 +349,14 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
       title: 'Master Pengguna & Akun Panitia PPDB',
       subtitle: 'Kelola hak akses dan peran (Super Admin, Operator PPDB, Bendahara, Kepala Sekolah).',
     },
+    content: {
+      title: 'Manajemen Konten Beranda (CMS)',
+      subtitle: 'Kelola judul banner hero, teks keunggulan, panduan pendaftaran, CTA, dan kontak informasi sekolah.',
+    },
+    helpdesk: {
+      title: 'Pusat Helpdesk & Layanan Pengaduan PPDB',
+      subtitle: 'Kelola pertanyaan masuk dari calon siswa/orang tua, tanggapan resmi, dan balasan via WhatsApp Web.',
+    },
     dapodik: {
       title: 'Modul Standar Baku Ekspor Dapodik Kemendikdasmen',
       subtitle: 'Format baku CSV/Excel sesuai spek Dapodik pusat dan fitur pengelompokan SD asal untuk sp.datadik.',
@@ -454,6 +488,35 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
                     {pendaftarList.filter((p) => p.verifikasiFisik?.verified).length}
                   </span>
                 </div>
+
+                {(user?.role === 'ADMIN' || can('MANAGE_CONTENT')) && (
+                  <div className="sm:col-span-2 p-4 bg-purple-50/80 border border-purple-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-purple-600 text-white rounded-lg shrink-0 shadow-sm">
+                        <LayoutTemplate className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-purple-950">
+                            Manajemen Konten Beranda (CMS)
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200 text-purple-900">
+                            Super Admin
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-purple-800 mt-0.5">
+                          Ubah judul headline hero, 4 poin keunggulan, panduan 4 langkah pendaftaran, banner CTA, dan info kontak secara instan.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => setActiveMenu('content')}
+                      className="text-xs bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 shrink-0 shadow-xs cursor-pointer"
+                    >
+                      Buka Modul CMS &rarr;
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -521,6 +584,44 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
                 <h3 className="text-base font-bold text-slate-800">Akses Terbatas: Manajemen Pengguna (RBAC)</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Pengelolaan akun panitia PPDB, operator, dan hak akses sistem memerlukan otorisasi Super Administrator.
+                </p>
+              </div>
+            )
+          )}
+
+          {/* View: MASTER LANDING CONTENT (CMS) */}
+          {activeMenu === 'content' && (
+            can('MANAGE_CONTENT') ? (
+              <div className="animate-in fade-in duration-200">
+                <MasterLandingContentManager />
+              </div>
+            ) : (
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3 max-w-lg mx-auto">
+                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+                  🛡️
+                </div>
+                <h3 className="text-base font-bold text-slate-800">Akses Terbatas: Konten Beranda (CMS)</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Pengaturan teks judul, banner, panduan, dan kontak publik beranda hanya dapat diakses oleh Super Admin.
+                </p>
+              </div>
+            )
+          )}
+
+          {/* View: HELPDESK & COMPLAINT SERVICE */}
+          {activeMenu === 'helpdesk' && (
+            can('MANAGE_HELPDESK') ? (
+              <div className="animate-in fade-in duration-200">
+                <MasterHelpdeskManager />
+              </div>
+            ) : (
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3 max-w-lg mx-auto">
+                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+                  🛡️
+                </div>
+                <h3 className="text-base font-bold text-slate-800">Akses Terbatas: Helpdesk & Tiket</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Layanan tiket bantuan dan pengaduan hanya dapat diakses oleh Panitia PPDB, Operator, dan Pimpinan.
                 </p>
               </div>
             )

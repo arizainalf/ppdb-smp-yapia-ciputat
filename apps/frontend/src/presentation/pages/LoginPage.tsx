@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  GraduationCap,
   Lock,
   UserCheck,
   Shield,
@@ -13,6 +12,7 @@ import {
 import { useAuth } from '../../application/contexts/AuthContext.js';
 import { Button } from '../components/common/Button.js';
 import { InputField } from '../components/common/InputField.js';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
   onBackToHome: () => void;
@@ -26,6 +26,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
 }) => {
   const { login, loginPendaftar, isAuthenticated, user, logout } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirectTarget = searchParams.get('redirect');
+
+  const handleSuccessRedirect = (defaultTarget: 'admin' | 'status') => {
+    if (redirectTarget) {
+      navigate(redirectTarget);
+    } else {
+      onLoginSuccess(defaultTarget);
+    }
+  };
+
   const [loginType, setLoginType] = useState<'pendaftar' | 'panitia'>('pendaftar');
 
   // Fields for Pendaftar (WhatsApp + Email only, tanpa password)
@@ -53,7 +65,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(false);
 
     if (res.success) {
-      onLoginSuccess('status');
+      handleSuccessRedirect('status');
     } else {
       setErrorMsg(res.message || 'Login orang tua gagal. Pastikan nomor WhatsApp dan email cocok dengan data pendaftaran.');
     }
@@ -73,7 +85,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(false);
 
     if (res.success) {
-      onLoginSuccess('admin');
+      handleSuccessRedirect('admin');
     } else {
       setErrorMsg(res.message || 'Login panitia gagal. Silakan periksa kembali akun atau kata sandi Anda.');
     }
@@ -86,7 +98,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const res = await loginPendaftar('081299887766', 'pendaftar@yapia.sch.id');
       setIsLoading(false);
       if (res.success) {
-        onLoginSuccess('status');
+        handleSuccessRedirect('status');
       } else {
         setErrorMsg(res.message || 'Login orang tua gagal.');
       }
@@ -100,7 +112,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const res = await login(phoneMap[role], 'password123');
       setIsLoading(false);
       if (res.success) {
-        onLoginSuccess('admin');
+        handleSuccessRedirect('admin');
       } else {
         setErrorMsg(res.message || 'Login panitia gagal.');
       }
@@ -145,7 +157,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button
-                onClick={() => onLoginSuccess(user.role === 'PENDAFTAR' ? 'status' : 'admin')}
+                onClick={() => handleSuccessRedirect(user.role === 'PENDAFTAR' ? 'status' : 'admin')}
                 className="flex-1 sm:flex-none text-xs py-2 px-4 bg-white text-emerald-900 hover:bg-emerald-50 font-bold shadow-xs cursor-pointer"
               >
                 {user.role === 'PENDAFTAR' ? 'Buka Status Ananda' : 'Buka Dasbor Panitia'}
@@ -166,8 +178,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           {/* Left Side: School PPDB Introduction (Visible on LG) */}
           <div className="lg:col-span-5 space-y-6 lg:pt-4">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold">
-                <GraduationCap className="w-4 h-4 text-emerald-700" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold">
+                <img
+                  src="/assets/logo-smp-yapia-ciputat.png"
+                  alt="Logo SMP YAPIA Ciputat"
+                  className="w-4 h-4 object-contain"
+                />
                 <span>Portal Masuk Resmi PPDB</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
@@ -240,8 +256,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             {/* Top Form Header */}
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
-                  <GraduationCap className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-slate-800 border border-slate-700/60 flex items-center justify-center p-1.5 shadow-md shadow-emerald-950/40 shrink-0">
+                  <img
+                    src="/assets/logo-smp-yapia-ciputat.png"
+                    alt="Logo SMP YAPIA Ciputat"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
                   <h2 className="text-lg font-black tracking-tight text-white">

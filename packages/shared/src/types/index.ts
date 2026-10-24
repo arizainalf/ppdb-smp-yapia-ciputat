@@ -1,4 +1,11 @@
-import { StatusPendaftaran, UserRole, JalurPendaftaran, KemampuanQuran } from '../constants/index.js';
+import {
+  StatusPendaftaran,
+  UserRole,
+  JalurPendaftaran,
+  KemampuanQuran,
+  KategoriHelpdesk,
+  StatusHelpdesk,
+} from '../constants/index.js';
 
 export interface UserDTO {
   id: string;
@@ -88,3 +95,89 @@ export interface ApiResponse<T> {
   data?: T;
   errors?: unknown[];
 }
+
+export interface LandingContentDTO {
+  hero: {
+    badgeText: string;
+    heroTitle: string;
+    heroHighlight: string;
+    heroSubtitle: string;
+    heroDaftarBtn: string;
+    heroCekStatusBtn: string;
+  };
+  metrics: {
+    metric1Title: string;
+    metric1Subtitle: string;
+    metric2Title: string;
+    metric2Subtitle: string;
+    metric3Title: string;
+    metric3Subtitle: string;
+    metric4Title: string;
+    metric4Subtitle: string;
+  };
+  syarat: {
+    syaratBadge: string;
+    syaratTitle: string;
+    syaratSubtitle: string;
+    syarat1Title: string;
+    syarat1Desc: string;
+    syarat2Title: string;
+    syarat2Desc: string;
+    syarat3Title: string;
+    syarat3Desc: string;
+  };
+  panduan: {
+    panduanBadge: string;
+    panduanTitle: string;
+    step1Title: string;
+    step1Desc: string;
+    step2Title: string;
+    step2Desc: string;
+    step3Title: string;
+    step3Desc: string;
+    step4Title: string;
+    step4Desc: string;
+  };
+  cta: {
+    ctaBadge: string;
+    ctaTitle: string;
+    ctaSubtitle: string;
+    ctaPrimaryBtn: string;
+    ctaSecondaryBtn: string;
+    ctaChip1: string;
+    ctaChip2: string;
+    ctaChip3: string;
+  };
+  kontak: {
+    namaSekolah: string;
+    deskripsiSekolah: string;
+    npsn: string;
+    akreditasi: string;
+    alamatSekolah: string;
+    telepon: string;
+    whatsapp: string;
+    email: string;
+    jadwalPelayanan: string;
+  };
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface HelpdeskTicketDTO {
+  id: string;
+  ticketNumber: string;
+  namaPengirim: string;
+  noWhatsapp: string;
+  email?: string;
+  kategori: KategoriHelpdesk;
+  subjek: string;
+  pesan: string;
+  status: StatusHelpdesk;
+  tanggapanPanitia?: string;
+  ditanggapiOleh?: string;
+  ditanggapiAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+

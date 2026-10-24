@@ -18,6 +18,8 @@ export type Permission =
   | 'EXPORT_DAPODIK'
   | 'MANAGE_GELOMBANG'
   | 'MANAGE_USERS'
+  | 'MANAGE_CONTENT'
+  | 'MANAGE_HELPDESK'
   | 'VERIFY_PAYMENT'
   | 'VIEW_PENDAFTARAN_SENDIRI'
   | 'DOWNLOAD_BUKTI';
@@ -33,6 +35,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'EXPORT_DAPODIK',
     'MANAGE_GELOMBANG',
     'MANAGE_USERS',
+    'MANAGE_CONTENT',
+    'MANAGE_HELPDESK',
     'VERIFY_PAYMENT',
     'VIEW_PENDAFTARAN_SENDIRI',
     'DOWNLOAD_BUKTI',
@@ -44,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'VERIFY_FISIK',
     'ASSESS_OBSERVASI',
     'EXPORT_DAPODIK',
+    'MANAGE_HELPDESK',
   ],
   KEPSEK: [
     'VIEW_DASHBOARD',
@@ -51,6 +56,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'ASSESS_OBSERVASI',
     'APPROVE_KELULUSAN',
     'EXPORT_DAPODIK',
+    'MANAGE_HELPDESK',
   ],
   BENDAHARA: [
     'VIEW_DASHBOARD',
@@ -123,4 +129,23 @@ export const STATUS_PEMBAYARAN = {
 } as const;
 
 export type StatusPembayaran = (typeof STATUS_PEMBAYARAN)[keyof typeof STATUS_PEMBAYARAN];
+
+export const KATEGORI_HELPDESK = {
+  INFO_PENDAFTARAN: 'INFO_PENDAFTARAN',
+  SYARAT_BERKAS: 'SYARAT_BERKAS',
+  BIAYA_INFAK: 'BIAYA_INFAK',
+  JALUR_AFIRMASI_KIP: 'JALUR_AFIRMASI_KIP',
+  KENDALA_TEKNIS: 'KENDALA_TEKNIS',
+  LAINNYA: 'LAINNYA',
+} as const;
+
+export type KategoriHelpdesk = (typeof KATEGORI_HELPDESK)[keyof typeof KATEGORI_HELPDESK];
+
+export const STATUS_HELPDESK = {
+  MENUNGGU_RESPON: 'MENUNGGU_RESPON',
+  SEDANG_DIPROSES: 'SEDANG_DIPROSES',
+  SELESAI: 'SELESAI',
+} as const;
+
+export type StatusHelpdesk = (typeof STATUS_HELPDESK)[keyof typeof STATUS_HELPDESK];
 

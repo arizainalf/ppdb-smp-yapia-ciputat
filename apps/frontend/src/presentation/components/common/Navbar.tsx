@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  GraduationCap,
   Phone,
   CheckCircle,
   Home,
@@ -45,9 +44,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-700 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
-            <GraduationCap className="w-6 h-6" />
-          </div>
+          <img
+            src="/assets/logo-smp-yapia-ciputat.png"
+            alt="Logo SMP YAPIA Ciputat"
+            className="w-10 h-10 object-contain group-hover:scale-105 transition-transform shrink-0"
+          />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-slate-900 tracking-tight text-base sm:text-lg">

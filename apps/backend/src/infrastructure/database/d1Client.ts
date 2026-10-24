@@ -100,6 +100,33 @@ export class D1Client {
           console.log(`🌱 [D1Client] Data awal (seed) D1 berhasil diinjeksi dari: ${seedPath}`);
         }
       }
+
+      // Pastikan tabel site_content selalu tersedia
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS site_content (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+          updated_by TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS helpdesk_tickets (
+          id TEXT PRIMARY KEY,
+          ticket_number TEXT UNIQUE NOT NULL,
+          nama_pengirim TEXT NOT NULL,
+          no_whatsapp TEXT NOT NULL,
+          email TEXT,
+          kategori TEXT NOT NULL CHECK(kategori IN ('INFO_PENDAFTARAN', 'SYARAT_BERKAS', 'BIAYA_INFAK', 'JALUR_AFIRMASI_KIP', 'KENDALA_TEKNIS', 'LAINNYA')),
+          subjek TEXT NOT NULL,
+          pesan TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'MENUNGGU_RESPON' CHECK(status IN ('MENUNGGU_RESPON', 'SEDANG_DIPROSES', 'SELESAI')),
+          tanggapan_panitia TEXT,
+          ditanggapi_oleh TEXT,
+          ditanggapi_at TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
     } catch (bootstrapErr: any) {
       console.error(`⚠️ [D1Client] Gagal auto-bootstrap schema:`, bootstrapErr.message);
     }

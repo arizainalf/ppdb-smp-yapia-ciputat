@@ -6,15 +6,16 @@ import {
   Shield,
   FileSpreadsheet,
   LogOut,
-  GraduationCap,
   Database,
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  LayoutTemplate,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '../../../application/contexts/AuthContext.js';
 
-export type AdminMenuKey = 'overview' | 'pendaftar' | 'gelombang' | 'users' | 'dapodik';
+export type AdminMenuKey = 'overview' | 'pendaftar' | 'gelombang' | 'users' | 'dapodik' | 'content' | 'helpdesk';
 
 export interface AdminSidebarProps {
   activeMenu: AdminMenuKey;
@@ -80,6 +81,20 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       permission: 'MANAGE_USERS',
     },
     {
+      key: 'content',
+      label: 'Konten Beranda (CMS)',
+      icon: <LayoutTemplate className="w-4 h-4 shrink-0" />,
+      section: 'Situs & Publikasi',
+      permission: 'MANAGE_CONTENT',
+    },
+    {
+      key: 'helpdesk',
+      label: 'Helpdesk & Tiket',
+      icon: <Headphones className="w-4 h-4 shrink-0" />,
+      section: 'Layanan Siswa',
+      permission: 'MANAGE_HELPDESK',
+    },
+    {
       key: 'dapodik',
       label: 'Ekspor Dapodik',
       icon: <FileSpreadsheet className="w-4 h-4 shrink-0" />,
@@ -88,7 +103,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
   ];
 
-  const menuItems = rawMenuItems.filter((item) => can(item.permission));
+  const SECTIONS = ['Utama', 'Master Data', 'Situs & Publikasi', 'Layanan Siswa', 'Laporan'];
+
+  const menuItems = rawMenuItems.filter((item) => {
+    if (item.key === 'content') {
+      return user?.role === 'ADMIN' || can('MANAGE_CONTENT');
+    }
+    return can(item.permission);
+  });
 
   return (
     <>
@@ -111,8 +133,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <div className="h-16 px-4 border-b border-slate-800/80 flex items-center justify-between shrink-0">
             {/* Header when expanded (or on mobile) */}
             <div className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'lg:hidden' : 'flex'}`}>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-                <GraduationCap className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1 shrink-0 shadow-xs">
+                <img
+                  src="/assets/logo-smp-yapia-ciputat.png"
+                  alt="Logo SMP YAPIA Ciputat"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="overflow-hidden">
                 <h2 className="font-black text-white text-sm tracking-tight leading-tight whitespace-nowrap">
@@ -129,10 +155,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <button
                 onClick={onToggleCollapse}
                 title="Perluas Sidebar (Expand)"
-                className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 hover:scale-105 transition-all group cursor-pointer"
+                className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 hover:bg-slate-800 hover:scale-105 transition-all group cursor-pointer"
               >
-                <GraduationCap className="w-5 h-5 group-hover:hidden" />
-                <PanelLeftOpen className="w-5 h-5 hidden group-hover:block" />
+                <img
+                  src="/assets/logo-smp-yapia-ciputat.png"
+                  alt="Logo SMP YAPIA Ciputat"
+                  className="w-full h-full object-contain group-hover:hidden"
+                />
+                <PanelLeftOpen className="w-5 h-5 text-emerald-400 hidden group-hover:block" />
               </button>
             </div>
 
@@ -188,7 +218,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             {isCollapsed ? (
               // Collapsed View for Desktop (Icons only)
               <div className="hidden lg:flex flex-col items-center py-3 space-y-3 px-2">
-                {['Utama', 'Master Data', 'Laporan'].map((sectionTitle, sIdx) => {
+                {SECTIONS.map((sectionTitle, sIdx) => {
                   const items = menuItems.filter((i) => i.section === sectionTitle);
                   if (items.length === 0) return null;
 
@@ -226,7 +256,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
             {/* Expanded View (always on mobile, and on desktop when not collapsed) */}
             <div className={`p-3 space-y-6 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
-              {['Utama', 'Master Data', 'Laporan'].map((sectionTitle) => {
+              {SECTIONS.map((sectionTitle) => {
                 const items = menuItems.filter((i) => i.section === sectionTitle);
                 if (items.length === 0) return null;
 

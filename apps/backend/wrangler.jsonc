@@ -1,0 +1,12 @@
+{
+  "name": "sipmb-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yapia_sipmb_db",
+      "database_id": "d3cf71a2-6e39-40ee-9689-93f1bd17716a"
+    }
+  ]
+}

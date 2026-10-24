@@ -187,6 +187,32 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+-- 11. TABEL MANAJEMEN KONTEN BERANDA & PENGATURAN SITUS
+CREATE TABLE IF NOT EXISTS site_content (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_by TEXT
+);
+
+-- 12. TABEL HELPDESK & LAYANAN PENGADUAN PPDB
+CREATE TABLE IF NOT EXISTS helpdesk_tickets (
+    id TEXT PRIMARY KEY,
+    ticket_number TEXT UNIQUE NOT NULL,
+    nama_pengirim TEXT NOT NULL,
+    no_whatsapp TEXT NOT NULL,
+    email TEXT,
+    kategori TEXT NOT NULL CHECK(kategori IN ('INFO_PENDAFTARAN', 'SYARAT_BERKAS', 'BIAYA_INFAK', 'JALUR_AFIRMASI_KIP', 'KENDALA_TEKNIS', 'LAINNYA')),
+    subjek TEXT NOT NULL,
+    pesan TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'MENUNGGU_RESPON' CHECK(status IN ('MENUNGGU_RESPON', 'SEDANG_DIPROSES', 'SELESAI')),
+    tanggapan_panitia TEXT,
+    ditanggapi_oleh TEXT,
+    ditanggapi_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 -- ==============================================================================
 -- INDEKS PERFORMA UNTUK PENCARIAN CEPAT
 -- ==============================================================================
@@ -197,3 +223,6 @@ CREATE INDEX IF NOT EXISTS idx_sekolah_asal_nisn ON sekolah_asal(nisn);
 CREATE INDEX IF NOT EXISTS idx_orang_tua_calon_siswa ON orang_tua_wali(calon_siswa_id);
 CREATE INDEX IF NOT EXISTS idx_berkas_calon_siswa ON berkas_pendaftaran(calon_siswa_id);
 CREATE INDEX IF NOT EXISTS idx_pembayaran_status ON pembayaran_pendaftaran(status_pembayaran);
+CREATE INDEX IF NOT EXISTS idx_helpdesk_status ON helpdesk_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_helpdesk_no_whatsapp ON helpdesk_tickets(no_whatsapp);
+CREATE INDEX IF NOT EXISTS idx_helpdesk_ticket_number ON helpdesk_tickets(ticket_number);

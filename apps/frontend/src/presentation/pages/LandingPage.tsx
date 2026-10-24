@@ -8,6 +8,75 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { Button } from '../components/common/Button.js';
+import type { LandingContentDTO } from '@yapia/shared';
+
+const DEFAULT_CONTENT: LandingContentDTO = {
+  hero: {
+    badgeText: 'PENDAFTARAN RESMI DIBUKA: TAHUN AJARAN 2026/2027',
+    heroTitle: 'Mewujudkan Generasi Islami, Cerdas & Berakhlak Mulia',
+    heroHighlight: 'Cerdas',
+    heroSubtitle:
+      'Selamat datang di Portal Resmi Sistem Informasi Penerimaan Murid Baru (SIPMB) SMP YAPIA Ciputat. Proses pendaftaran mudah, transparan, dan terverifikasi secara online.',
+    heroDaftarBtn: 'Daftar Sekarang',
+    heroCekStatusBtn: 'Cek Status Pendaftaran',
+  },
+  metrics: {
+    metric1Title: 'Akreditasi A',
+    metric1Subtitle: 'Kemendikbudristek',
+    metric2Title: '100% Online',
+    metric2Subtitle: 'Tanpa Antre di Sekolah',
+    metric3Title: '24 Jam',
+    metric3Subtitle: 'Akses Formulir Kapanpun',
+    metric4Title: 'WhatsApp Notif',
+    metric4Subtitle: 'Update Status Realtime',
+  },
+  syarat: {
+    syaratBadge: 'Persyaratan PPDB',
+    syaratTitle: 'Dokumen Persyaratan yang Perlu Disiapkan',
+    syaratSubtitle: 'Pastikan Anda telah menyiapkan foto atau scan berkas dokumen berikut sebelum mengisi formulir:',
+    syarat1Title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
+    syarat1Desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
+    syarat2Title: 'Kartu Keluarga (KK)',
+    syarat2Desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
+    syarat3Title: 'Akta Kelahiran Calon Siswa',
+    syarat3Desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+  },
+  panduan: {
+    panduanBadge: 'Panduan Pendaftaran',
+    panduanTitle: '4 Langkah Mudah Pendaftaran Online',
+    step1Title: 'Isi Biodata Lengkap',
+    step1Desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
+    step2Title: 'Unggah Scan Dokumen',
+    step2Desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
+    step3Title: 'Verifikasi Panitia',
+    step3Desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
+    step4Title: 'Cetak Bukti Pendaftaran',
+    step4Desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+  },
+  cta: {
+    ctaBadge: 'PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS',
+    ctaTitle: 'Siap Mendaftarkan Putra/Putri Anda di SMP YAPIA Ciputat?',
+    ctaSubtitle:
+      'Pengisian formulir praktis dalam 5 tahap, berkas diunggah langsung melalui ponsel, dan nomor registrasi resmi diterbitkan secara instan.',
+    ctaPrimaryBtn: 'Mulai Pengisian Formulir Sekarang',
+    ctaSecondaryBtn: 'Sudah Mendaftar? Cek Status & SK',
+    ctaChip1: 'Pengisian 5 Menit Selesai',
+    ctaChip2: 'Kepatuhan UU PDP No. 27/2022',
+    ctaChip3: 'Helpdesk WhatsApp 24 Jam',
+  },
+  kontak: {
+    namaSekolah: 'SMP YAPIA CIPUTAT',
+    deskripsiSekolah:
+      'Membentuk generasi berakhlak mulia, berprestasi akademik, dan siap menghadapi tantangan era digital dengan nilai-nilai Islam.',
+    npsn: '20603210',
+    akreditasi: 'Akreditasi A',
+    alamatSekolah: 'Jl. KH. Dewantara No. 12, Ciputat, Kota Tangerang Selatan, Banten 15411',
+    telepon: '(021) 749-XXXX',
+    whatsapp: '0812-3456-7890',
+    email: 'ppdb@smp-yapia.sch.id',
+    jadwalPelayanan: 'Senin – Jumat: 08.00 – 15.00 WIB | Sabtu: 08.00 – 12.00 WIB (Helpdesk Offline)',
+  },
+};
 
 interface GelombangItem {
   id: number;
@@ -30,6 +99,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartRegistration,
   onCheckStatus,
 }) => {
+  const [siteContent, setSiteContent] = useState<LandingContentDTO>(DEFAULT_CONTENT);
   const [gelombangList, setGelombangList] = useState<GelombangItem[]>([
     {
       id: 1,
@@ -56,6 +126,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   ]);
 
   useEffect(() => {
+    // 1. Ambil data jadwal gelombang
     fetch('http://localhost:8000/api/v1/gelombang')
       .then((res) => res.json())
       .then((json) => {
@@ -64,7 +135,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         }
       })
       .catch((err) => console.error('Gagal mengambil jadwal gelombang:', err));
+
+    // 2. Ambil data konten dinamis beranda (CMS Super Admin)
+    fetch('http://localhost:8000/api/v1/content/landing')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === 'success' && json.data) {
+          setSiteContent(json.data);
+        }
+      })
+      .catch((err) => console.error('Gagal mengambil konten dinamis beranda:', err));
   }, []);
+
   return (
     <div className="space-y-16 pb-16">
       {/* 1. HERO SECTION */}
@@ -75,15 +157,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold tracking-wide backdrop-blur-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            PENDAFTARAN RESMI DIBUKA: TAHUN AJARAN 2026/2027
+            {siteContent.hero.badgeText}
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight max-w-4xl mx-auto">
-            Mewujudkan Generasi Islami, <span className="text-emerald-400">Cerdas</span> & Berakhlak Mulia
+            {siteContent.hero.heroTitle}
           </h1>
 
           <p className="text-sm sm:text-base md:text-lg text-emerald-100/80 max-w-2xl mx-auto font-normal leading-relaxed">
-            Selamat datang di Portal Resmi Sistem Informasi Penerimaan Murid Baru (SIPMB) <strong>SMP YAPIA Ciputat</strong>. Proses pendaftaran mudah, transparan, dan terverifikasi secara online.
+            {siteContent.hero.heroSubtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
@@ -91,34 +173,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={onStartRegistration}
               className="w-full sm:w-auto px-6 py-3.5 text-base bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
             >
-              Daftar Sekarang <ArrowRight className="w-5 h-5 ml-1" />
+              {siteContent.hero.heroDaftarBtn} <ArrowRight className="w-5 h-5 ml-1" />
             </Button>
             <Button
               variant="outline"
               onClick={onCheckStatus}
               className="w-full sm:w-auto px-6 py-3.5 text-base bg-emerald-400 text-slate-800 hover:bg-emerald-800 border border-emerald-400 hover:text-white font-bold shadow-md shadow-emerald-400/20 hover:shadow-emerald-800/30"
             >
-              Cek Status Pendaftaran
+              {siteContent.hero.heroCekStatusBtn}
             </Button>
           </div>
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-10 border-t border-emerald-700/40 max-w-4xl mx-auto text-left">
             <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">Akreditasi A</span>
-              <p className="text-[11px] text-emerald-200/70">Kemendikbudristek</p>
+              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric1Title}</span>
+              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric1Subtitle}</p>
             </div>
             <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">100% Online</span>
-              <p className="text-[11px] text-emerald-200/70">Tanpa Antre di Sekolah</p>
+              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric2Title}</span>
+              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric2Subtitle}</p>
             </div>
             <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">24 Jam</span>
-              <p className="text-[11px] text-emerald-200/70">Akses Formulir Kapanpun</p>
+              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric3Title}</span>
+              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric3Subtitle}</p>
             </div>
             <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">WhatsApp Notif</span>
-              <p className="text-[11px] text-emerald-200/70">Update Status Realtime</p>
+              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric4Title}</span>
+              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric4Subtitle}</p>
             </div>
           </div>
         </div>
@@ -218,13 +300,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">
-              Persyaratan PPDB
+              {siteContent.syarat.syaratBadge}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-              Dokumen Persyaratan yang Perlu Disiapkan
+              {siteContent.syarat.syaratTitle}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Pastikan Anda telah menyiapkan foto atau scan berkas dokumen berikut sebelum mengisi formulir:
+              {siteContent.syarat.syaratSubtitle}
             </p>
           </div>
 
@@ -233,9 +315,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
                 1
               </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">Ijazah SD / Surat Keterangan Lulus (SKL)</h3>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat1Title}</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.
+                {siteContent.syarat.syarat1Desc}
               </p>
             </div>
 
@@ -243,9 +325,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
                 2
               </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">Kartu Keluarga (KK)</h3>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat2Title}</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).
+                {siteContent.syarat.syarat2Desc}
               </p>
             </div>
 
@@ -253,9 +335,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
                 3
               </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">Akta Kelahiran Calon Siswa</h3>
+              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat3Title}</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.
+                {siteContent.syarat.syarat3Desc}
               </p>
             </div>
           </div>
@@ -266,10 +348,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="max-w-5xl mx-auto px-4">
         <div className="text-center mb-10">
           <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">
-            Panduan Pendaftaran
+            {siteContent.panduan.panduanBadge}
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-            4 Langkah Mudah Pendaftaran Online
+            {siteContent.panduan.panduanTitle}
           </h2>
         </div>
 
@@ -278,9 +360,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
               1
             </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Isi Biodata Lengkap</h4>
+            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step1Title}</h4>
             <p className="text-xs text-slate-500">
-              Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.
+              {siteContent.panduan.step1Desc}
             </p>
           </div>
 
@@ -288,9 +370,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
               2
             </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Unggah Scan Dokumen</h4>
+            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step2Title}</h4>
             <p className="text-xs text-slate-500">
-              Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.
+              {siteContent.panduan.step2Desc}
             </p>
           </div>
 
@@ -298,9 +380,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
               3
             </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Verifikasi Panitia</h4>
+            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step3Title}</h4>
             <p className="text-xs text-slate-500">
-              Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.
+              {siteContent.panduan.step3Desc}
             </p>
           </div>
 
@@ -308,9 +390,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
               4
             </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Cetak Bukti Pendaftaran</h4>
+            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step4Title}</h4>
             <p className="text-xs text-slate-500">
-              Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.
+              {siteContent.panduan.step4Desc}
             </p>
           </div>
         </div>
@@ -326,15 +408,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold tracking-wide backdrop-blur-xs">
               <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS</span>
+              <span>{siteContent.cta.ctaBadge}</span>
             </div>
 
             <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-              Siap Mendaftarkan Putra/Putri Anda di SMP YAPIA Ciputat?
+              {siteContent.cta.ctaTitle}
             </h3>
 
             <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl mx-auto leading-relaxed">
-              Pengisian formulir praktis dalam 5 tahap, berkas diunggah langsung melalui ponsel, dan nomor registrasi resmi diterbitkan secara instan.
+              {siteContent.cta.ctaSubtitle}
             </p>
 
             {/* High-Impact CTA Button Group */}
@@ -343,7 +425,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={onStartRegistration}
                 className="w-full sm:w-auto px-8 py-4 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-base rounded-2xl shadow-xl shadow-emerald-950/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer ring-4 ring-emerald-400/20"
               >
-                <span>Mulai Pengisian Formulir Sekarang</span>
+                <span>{siteContent.cta.ctaPrimaryBtn}</span>
                 <ArrowRight className="w-5 h-5 shrink-0" />
               </Button>
 
@@ -352,20 +434,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={onCheckStatus}
                 className="w-full sm:w-auto px-6 py-4 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-sm rounded-2xl backdrop-blur-xs transition-colors cursor-pointer"
               >
-                Sudah Mendaftar? Cek Status & SK
+                {siteContent.cta.ctaSecondaryBtn}
               </Button>
             </div>
 
             {/* Value Reassurance Chips */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 pt-3 text-[11px] text-emerald-200/80 border-t border-emerald-800/40">
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Pengisian 5 Menit Selesai
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> {siteContent.cta.ctaChip1}
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Kepatuhan UU PDP No. 27/2022
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> {siteContent.cta.ctaChip2}
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Helpdesk WhatsApp 24 Jam
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> {siteContent.cta.ctaChip3}
               </span>
             </div>
           </div>

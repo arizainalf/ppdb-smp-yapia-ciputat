@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   X,
   Lock,
-  GraduationCap,
   AlertCircle,
   Shield,
   UserCheck,
@@ -89,8 +88,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
         {/* Header */}
         <div className="p-5 bg-gradient-to-r from-emerald-800 to-teal-800 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-              <GraduationCap className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center p-1 backdrop-blur-xs">
+              <img
+                src="/assets/logo-smp-yapia-ciputat.png"
+                alt="Logo SMP YAPIA Ciputat"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h3 className="text-base font-black tracking-tight">Portal Masuk SPMB</h3>
