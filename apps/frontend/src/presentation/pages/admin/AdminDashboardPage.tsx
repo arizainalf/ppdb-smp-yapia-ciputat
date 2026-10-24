@@ -258,7 +258,7 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
 
   const fetchPendaftarList = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/calon-siswa');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa`);
       const json = await res.json();
       if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
         setPendaftarList(json.data);
@@ -315,7 +315,7 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
 
     // 2. Persist ke database backend Hono
     try {
-      await fetch(`http://localhost:8000/api/v1/calon-siswa/${id}/status`, {
+      await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

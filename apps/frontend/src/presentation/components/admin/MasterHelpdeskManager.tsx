@@ -7,16 +7,9 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageSquare,
-  Phone,
-  Mail,
-  Send,
   X,
-  User,
-  Filter,
   ExternalLink,
-  Check,
   FileQuestion,
-  HelpCircle,
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '../common/Button.js';
@@ -51,7 +44,7 @@ export const MasterHelpdeskManager: React.FC = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<HelpdeskTicketDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -62,7 +55,7 @@ export const MasterHelpdeskManager: React.FC = () => {
   const [selectedTicket, setSelectedTicket] = useState<HelpdeskTicketDTO | null>(null);
   const [responseStatus, setResponseStatus] = useState<StatusHelpdesk>('SELESAI');
   const [responseTanggapan, setResponseTanggapan] = useState('');
-  const [responseDitanggapiOleh, setResponseDitanggapiOleh] = useState(user?.name || 'Panitia PPDB');
+  const [responseDitanggapiOleh, setResponseDitanggapiOleh] = useState(user?.namaLengkap || 'Panitia PPDB');
   const [savingResponse, setSavingResponse] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
@@ -92,7 +85,7 @@ export const MasterHelpdeskManager: React.FC = () => {
     setSelectedTicket(ticket);
     setResponseStatus(ticket.status === 'MENUNGGU_RESPON' ? 'SEDANG_DIPROSES' : ticket.status);
     setResponseTanggapan(ticket.tanggapanPanitia || '');
-    setResponseDitanggapiOleh(ticket.ditanggapiOleh || user?.name || 'Panitia PPDB');
+    setResponseDitanggapiOleh(ticket.ditanggapiOleh || user?.namaLengkap || 'Panitia PPDB');
     setSaveSuccessMsg(null);
   };
 

@@ -127,7 +127,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   useEffect(() => {
     // 1. Ambil data jadwal gelombang
-    fetch('http://localhost:8000/api/v1/gelombang')
+    fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang`)
       .then((res) => res.json())
       .then((json) => {
         if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
@@ -137,7 +137,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       .catch((err) => console.error('Gagal mengambil jadwal gelombang:', err));
 
     // 2. Ambil data konten dinamis beranda (CMS Super Admin)
-    fetch('http://localhost:8000/api/v1/content/landing')
+    fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/content/landing`)
       .then((res) => res.json())
       .then((json) => {
         if (json.status === 'success' && json.data) {

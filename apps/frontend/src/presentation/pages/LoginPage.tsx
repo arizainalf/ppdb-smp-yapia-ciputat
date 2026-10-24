@@ -472,7 +472,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     </div>
                     <div className="overflow-hidden">
                       <span className="font-bold block text-xs truncate">Kepala Sekolah</span>
-                      <span className="text-[10px] text-indigo-600 block truncate">Ibu Via Aprilian</span>
+                      <span className="text-[10px] text-indigo-600 block truncate">Via Aprilian</span>
                     </div>
                   </button>
 

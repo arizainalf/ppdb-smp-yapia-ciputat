@@ -14,11 +14,12 @@ export class D1Client {
   private readonly apiToken: string;
   private localDb: DatabaseSync | null = null;
   private isUsingLocal: boolean = false;
+  private binding: any = null;
 
   constructor() {
-    this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID || '';
-    this.databaseId = process.env.CLOUDFLARE_D1_DATABASE_ID || '';
-    this.apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+    this.accountId = (typeof process !== 'undefined' && process.env?.CLOUDFLARE_ACCOUNT_ID) || '';
+    this.databaseId = (typeof process !== 'undefined' && process.env?.CLOUDFLARE_D1_DATABASE_ID) || '';
+    this.apiToken = (typeof process !== 'undefined' && process.env?.CLOUDFLARE_API_TOKEN) || '';
 
     const hasValidCloudflareCreds =
       Boolean(this.accountId) &&
@@ -27,8 +28,15 @@ export class D1Client {
       !this.accountId.includes('contoh') &&
       !this.databaseId.includes('contoh');
 
-    if (!hasValidCloudflareCreds) {
-      this.initLocalDb();
+    if (!hasValidCloudflareCreds && typeof process !== 'undefined' && process.versions?.node) {
+      // Lazy init local DB saat dibutuhkan di lingkungan Node lokal
+    }
+  }
+
+  public setBinding(binding: any): void {
+    if (binding) {
+      this.binding = binding;
+      this.isUsingLocal = false;
     }
   }
 
@@ -140,12 +148,43 @@ export class D1Client {
       return p;
     });
 
-    // Jika berjalan di mode lokal atau kredensial Cloudflare belum disetel
+    // 1. Eksekusi langsung jika berjalan di Cloudflare Workers dengan Native D1 Binding
+    if (this.binding) {
+      try {
+        const stmt = this.binding.prepare(sql).bind(...normalizedParams);
+        const cleanSql = sql.trim();
+        const isSelect = /^(SELECT|PRAGMA)/i.test(cleanSql);
+
+        if (isSelect) {
+          const res = await stmt.all();
+          return {
+            results: (res.results || []) as T[],
+            success: res.success ?? true,
+            meta: res.meta,
+          };
+        } else {
+          const res = await stmt.run();
+          return {
+            results: [],
+            success: res.success ?? true,
+            meta: {
+              changes: res.meta?.changes ?? 0,
+              last_row_id: Number(res.meta?.last_row_id || 0),
+            },
+          };
+        }
+      } catch (err: any) {
+        console.error('❌ [D1Client] Native D1 Binding Query Error:', err.message);
+        throw err;
+      }
+    }
+
+    // 2. Jika berjalan di mode lokal atau kredensial Cloudflare belum disetel
     if (this.isUsingLocal || !this.accountId || !this.databaseId || !this.apiToken) {
       return this.queryLocal<T>(sql, normalizedParams);
     }
 
-    // Mode Cloudflare REST API (Production / Deployed)
+    // 3. Mode Cloudflare REST API (Node.js Server ke Cloudflare D1)
     try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}/d1/database/${this.databaseId}/query`;
 
@@ -160,8 +199,6 @@ export class D1Client {
 
       if (!res.ok) {
         const errText = await res.text();
-        // Jika Cloudflare mengembalikan 404 (object identifier invalid) atau 401/403 karena token belum ada,
-        // alihkan ke lokal secara mulus agar pengembang tidak terhalang
         if (res.status === 404 || res.status === 401 || res.status === 403) {
           console.warn(`⚠️ [D1Client] Cloudflare D1 HTTP Error (${res.status}). Mengalihkan query ke SQLite lokal.`);
           this.initLocalDb();

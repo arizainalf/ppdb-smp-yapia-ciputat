@@ -24,7 +24,7 @@ export const MasterGelombangManager: React.FC = () => {
   const fetchGelombang = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:8000/api/v1/gelombang');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang`);
       const json = await res.json();
       if (json.status === 'success' && Array.isArray(json.data)) {
         setGelombangList(json.data);
@@ -68,8 +68,8 @@ export const MasterGelombangManager: React.FC = () => {
     try {
       const isEdit = editingItem.id && editingItem.id > 0;
       const url = isEdit
-        ? `http://localhost:8000/api/v1/gelombang/${editingItem.id}`
-        : 'http://localhost:8000/api/v1/gelombang';
+        ? `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang/${editingItem.id}`
+        : `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang`;
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -91,7 +91,7 @@ export const MasterGelombangManager: React.FC = () => {
 
   const handleToggleActive = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/gelombang/${id}/toggle`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang/${id}/toggle`, {
         method: 'PATCH',
       });
       if (res.ok) {
@@ -105,7 +105,7 @@ export const MasterGelombangManager: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (confirm('Yakin ingin menghapus data gelombang ini?')) {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/gelombang/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/gelombang/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {

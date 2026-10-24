@@ -100,7 +100,7 @@ export const MasterLandingContentManager: React.FC = () => {
   const loadContent = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:8000/api/v1/content/landing');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/content/landing`);
       const json = await res.json();
       if (json.status === 'success' && json.data) {
         setContent(json.data);
@@ -124,7 +124,7 @@ export const MasterLandingContentManager: React.FC = () => {
       setSaveSuccessMessage(null);
       setErrorMessage(null);
 
-      const res = await fetch('http://localhost:8000/api/v1/content/landing', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/content/landing`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -161,7 +161,7 @@ export const MasterLandingContentManager: React.FC = () => {
 
     try {
       setIsSaving(true);
-      const res = await fetch('http://localhost:8000/api/v1/content/landing/reset', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/content/landing/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ updatedBy: 'Super Admin (Reset)' }),

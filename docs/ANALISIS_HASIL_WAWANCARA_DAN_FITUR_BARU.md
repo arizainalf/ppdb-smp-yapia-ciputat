@@ -1,7 +1,7 @@
 # Laporan Analisis Hasil Wawancara Audit Tata Kelola TI & Rekomendasi Fitur Sistem SPMB SMP YAPIA Ciputat
 
 Dokumen ini memuat analisis mendalam terhadap hasil kuesioner audit tata kelola teknologi informasi (TI) pada Sistem Penerimaan Murid Baru (SPMB) SMP YAPIA Ciputat yang melibatkan 3 pemangku kepentingan kunci (*stakeholders*):
-1. **Kepala Sekolah**: Ibu Via Aprilian Safitri Nur, S.Kom
+1. **Kepala Sekolah**: Bpk. Via Aprilian Safitri Nur, S.Kom
 2. **Operator Dapodik / Sekolah**: Bpk. Ruslan Setiawan
 3. **Panitia SPMB / Staf Administrasi TU**: Sdri. Aila Syifa
 
@@ -11,7 +11,7 @@ Dokumen ini memuat analisis mendalam terhadap hasil kuesioner audit tata kelola 
 
 | Pemangku Kepentingan | Responden | Peran & Ruang Lingkup Operasional |
 | :--- | :--- | :--- |
-| **Kepala Sekolah** | Ibu Via Aprilian Safitri Nur, S.Kom | Kebijakan SPMB, penetapan SK kepanitiaan, legalitas penetapan siswa baru, otorisasi hak akses, dan kepatuhan regulasi. |
+| **Kepala Sekolah** | Bpk. Via Aprilian Safitri Nur, S.Kom | Kebijakan SPMB, penetapan SK kepanitiaan, legalitas penetapan siswa baru, otorisasi hak akses, dan kepatuhan regulasi. |
 | **Operator Sekolah** | Bpk. Ruslan Setiawan | Penarikan data siswa dari server pusat (`sp.datadik.kemendikdasmen.go.id`), sinkronisasi Dapodik, backup prefill, dan sinkronisasi file Excel. |
 | **Staf Administrasi TU** | Sdri. Aila Syifa | Penerimaan berkas fisik, entri data formulir ke Excel, rekap angket observasi khusus, dan penyimpanan arsip fisik pendaftar. |
 

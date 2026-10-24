@@ -21,7 +21,7 @@ export const MasterUsersManager: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:8000/api/v1/users');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users`);
       const json = await res.json();
       if (json.status === 'success' && Array.isArray(json.data)) {
         setUsers(json.data);
@@ -57,7 +57,7 @@ export const MasterUsersManager: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Yakin ingin menghapus panitia ini?')) {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/users/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
@@ -71,7 +71,7 @@ export const MasterUsersManager: React.FC = () => {
 
   const handleToggleStatus = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/users/${id}/toggle`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users/${id}/toggle`, {
         method: 'PATCH',
       });
       if (res.ok) {
@@ -89,8 +89,8 @@ export const MasterUsersManager: React.FC = () => {
     try {
       const isEdit = Boolean(editingUser.id);
       const url = isEdit
-        ? `http://localhost:8000/api/v1/users/${editingUser.id}`
-        : 'http://localhost:8000/api/v1/users';
+        ? `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users/${editingUser.id}`
+        : `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users`;
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {

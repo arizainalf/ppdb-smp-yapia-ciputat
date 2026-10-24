@@ -16,7 +16,6 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
-  RotateCcw,
 } from 'lucide-react';
 import type { HelpdeskTicketDTO, KategoriHelpdesk } from '@yapia/shared';
 

@@ -59,7 +59,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
     setIsLoading(true);
     setHasSearched(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/calon-siswa/${encodeURIComponent(term)}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa/${encodeURIComponent(term)}`);
       const json = await res.json();
       if (json.status === 'success' && json.data) {
         setResult(json.data);

@@ -19,7 +19,7 @@ export const Footer: React.FC = () => {
   const [kontak, setKontak] = useState<LandingContentDTO['kontak']>(DEFAULT_KONTAK);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/content/landing')
+    fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/content/landing`)
       .then((res) => res.json())
       .then((json) => {
         if (json.status === 'success' && json.data?.kontak) {
