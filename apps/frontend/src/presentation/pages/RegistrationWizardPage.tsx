@@ -31,6 +31,7 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
   ];
 
   const handleFinalSubmit = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const res = await calonSiswaService.register({

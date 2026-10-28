@@ -173,8 +173,8 @@ export const PendaftarTable: React.FC<TableProps> = ({
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto">
+      {/* Desktop Table Container (sm and above) */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-slate-100 text-slate-600 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">

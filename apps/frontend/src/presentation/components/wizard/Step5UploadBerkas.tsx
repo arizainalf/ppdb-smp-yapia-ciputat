@@ -41,6 +41,7 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrorMsg(null);
 
     if (!uploads.ijazah || !uploads.kk || !uploads.akta) {
@@ -319,11 +320,11 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
         </label>
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-        <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting}>
+      <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-4 border-t border-slate-100">
+        <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting} className="w-full sm:w-auto">
           &larr; Kembali
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
           Kirim Formulir Pendaftaran Final ✓
         </Button>
       </div>

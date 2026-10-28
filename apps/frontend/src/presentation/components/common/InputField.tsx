@@ -18,12 +18,12 @@ export const InputField: React.FC<InputFieldProps> = ({
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label htmlFor={inputId} className="text-sm font-semibold text-slate-700">
+      <label htmlFor={inputId} className="text-xs sm:text-sm font-semibold text-slate-700">
         {label} {props.required && <span className="text-rose-500">*</span>}
       </label>
       <input
         id={inputId}
-        className={`px-3.5 py-2.5 rounded-lg border text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+        className={`px-3.5 py-2.5 rounded-lg border text-base sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
           error
             ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
             : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-100'

@@ -228,8 +228,8 @@ export const Step1CalonSiswa: React.FC = () => {
       </div>
 
       <div className="flex justify-end pt-4 border-t border-slate-100">
-        <Button type="submit" isLoading={isLoading}>
-          Lanjut ke Tahap 2: Sekolah Asal &rarr;
+        <Button type="submit" isLoading={isLoading} className="w-full sm:w-auto">
+          Lanjut ke Tahap 2: Asal Sekolah &rarr;
         </Button>
       </div>
     </form>

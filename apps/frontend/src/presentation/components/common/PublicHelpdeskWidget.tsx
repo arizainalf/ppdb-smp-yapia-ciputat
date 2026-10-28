@@ -210,16 +210,16 @@ export const PublicHelpdeskWidget: React.FC = () => {
   return (
     <>
       {/* Floating Trigger Button */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
         {!isOpen ? (
           <button
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-3 bg-emerald-700 hover:bg-emerald-800 text-white pl-4 pr-5 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-emerald-500/30"
+            className="group flex items-center gap-2 sm:gap-3 bg-emerald-700 hover:bg-emerald-800 text-white p-2.5 sm:pl-4 sm:pr-5 sm:py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-emerald-500/30"
             title="Buka Pusat Bantuan & Layanan Tanya Panitia"
           >
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-xs">
-                <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-xs">
+                <Headphones className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </div>
               <span className="w-3 h-3 rounded-full bg-emerald-400 absolute top-0 right-0 border-2 border-emerald-800 animate-pulse" />
             </div>
@@ -233,7 +233,7 @@ export const PublicHelpdeskWidget: React.FC = () => {
 
       {/* Helpdesk Modal / Widget Panel */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[440px] max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 inset-x-2 bottom-2 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[440px] max-h-[85vh] sm:max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white p-5 shrink-0 relative">
             <div className="flex items-start justify-between">

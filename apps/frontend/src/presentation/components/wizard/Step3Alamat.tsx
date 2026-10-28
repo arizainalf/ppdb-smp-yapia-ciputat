@@ -165,12 +165,12 @@ export const Step3Alamat: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-        <Button type="button" variant="outline" onClick={prevStep}>
+      <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-4 border-t border-slate-100">
+        <Button type="button" variant="outline" onClick={prevStep} className="w-full sm:w-auto">
           &larr; Kembali
         </Button>
-        <Button type="submit">
-          Lanjut ke Tahap 4: Orang Tua / Wali &rarr;
+        <Button type="submit" className="w-full sm:w-auto">
+          Lanjut ke Tahap 4: Orang Tua &rarr;
         </Button>
       </div>
     </form>

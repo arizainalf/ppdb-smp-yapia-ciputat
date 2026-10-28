@@ -12,6 +12,11 @@
     "dev:backend": "pnpm --filter @yapia/backend dev",
     "dev:frontend": "pnpm --filter @yapia/frontend dev",
     "build": "pnpm --recursive run build",
+    "build:frontend": "pnpm --filter @yapia/frontend build",
+    "build:backend": "pnpm --filter @yapia/backend build",
+    "deploy:frontend": "pnpm --filter @yapia/frontend build && npx wrangler pages deploy apps/frontend/dist --project-name ppdb-smp-yapia",
+    "deploy:backend": "cd apps/backend && npx wrangler deploy",
+    "deploy:all": "pnpm deploy:backend && pnpm deploy:frontend",
     "typecheck": "pnpm --recursive exec tsc --noEmit",
     "clean": "pnpm --recursive exec rm -rf node_modules dist"
   },

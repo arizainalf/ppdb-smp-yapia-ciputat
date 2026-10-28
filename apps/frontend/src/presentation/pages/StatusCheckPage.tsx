@@ -271,7 +271,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
               </span>
             </h4>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3 text-center text-xs [&>*:last-child]:col-span-2 [&>*:last-child]:sm:col-span-1">
               {/* Step 1: Form Terkirim */}
               <div className="flex flex-col items-center">
                 <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
@@ -498,7 +498,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
       {/* Modal Cetak Surat Keputusan Resmi (SK) Kelulusan */}
       {showSKModal && result && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-4 border border-slate-200 text-slate-900 font-sans">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-4 border border-slate-200 text-slate-900 font-sans">
             <div className="text-center border-b-2 border-slate-900 pb-3">
               <h4 className="text-xs font-black tracking-wider uppercase text-slate-800">
                 YAYASAN PENDIDIKAN ISLAM DAN SOSIAL CIPUTAT

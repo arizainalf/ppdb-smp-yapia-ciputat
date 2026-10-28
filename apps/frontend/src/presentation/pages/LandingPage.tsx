@@ -150,7 +150,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="space-y-16 pb-16">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-900 via-emerald-800 to-slate-900 text-white pt-16 pb-20 px-4">
+      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-900 via-emerald-800 to-slate-900 text-white pt-10 sm:pt-16 pb-14 sm:pb-20 px-4">
         {/* Subtle background decoration */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_50%)]" />
 
@@ -160,15 +160,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {siteContent.hero.badgeText}
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight max-w-4xl mx-auto">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight max-w-4xl mx-auto">
             {siteContent.hero.heroTitle}
           </h1>
 
-          <p className="text-sm sm:text-base md:text-lg text-emerald-100/80 max-w-2xl mx-auto font-normal leading-relaxed">
+          <p className="text-xs sm:text-base md:text-lg text-emerald-100/80 max-w-2xl mx-auto font-normal leading-relaxed px-2">
             {siteContent.hero.heroSubtitle}
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 sm:pt-4 w-full max-w-md sm:max-w-none mx-auto">
             <Button
               onClick={onStartRegistration}
               className="w-full sm:w-auto px-6 py-3.5 text-base bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
@@ -257,9 +257,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
 
                   <div className="mt-4 p-4 bg-emerald-50/70 rounded-xl border border-emerald-100 space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
                       <span className="text-slate-600 flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-emerald-600" /> Sisa Kuota Kelas:
+                        <Users className="w-4 h-4 text-emerald-600 shrink-0" /> Sisa Kuota Kelas:
                       </span>
                       <span className="font-bold text-emerald-900">
                         {sisa} dari {g.kuotaMaksimal} Siswa ({g.kuotaTerisi} Terdaftar)
@@ -400,7 +400,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 5. CALL TO ACTION (CTA) HERO BANNER */}
       <section className="max-w-5xl mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-8 sm:p-12 shadow-2xl border border-emerald-700/60">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-emerald-700/60">
           {/* Background Ambient Glow */}
           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -411,7 +411,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>{siteContent.cta.ctaBadge}</span>
             </div>
 
-            <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+            <h3 className="text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
               {siteContent.cta.ctaTitle}
             </h3>
 

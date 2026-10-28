@@ -364,7 +364,7 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
   };
 
   return (
-    <div className="min-h-screen lg:h-screen bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden">
+    <div className="min-h-[100dvh] lg:h-screen bg-slate-100 flex flex-col lg:flex-row font-sans overflow-x-hidden">
       {/* Sidebar Component */}
       <AdminSidebar
         activeMenu={activeMenu}
@@ -379,7 +379,7 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-[100dvh] lg:h-screen overflow-hidden">
         {/* Top Header Bar */}
         <header className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between shrink-0 shadow-2xs">
           <div className="flex items-center gap-3">
@@ -441,7 +441,7 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
         </header>
 
         {/* Dynamic Content View */}
-        <main className="p-4 sm:p-8 space-y-6 flex-1 overflow-y-auto">
+        <main className="p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 flex-1 overflow-y-auto">
           {/* View: OVERVIEW */}
           {activeMenu === 'overview' && (
             <div className="space-y-6 animate-in fade-in duration-200">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'danger';
@@ -23,9 +24,16 @@ export const Button: React.FC<ButtonProps> = ({
     danger: 'bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500',
   };
 
+  const mergedClasses = twMerge(
+    baseClasses,
+    variants[variant],
+    disabled || isLoading ? 'opacity-60 cursor-not-allowed' : '',
+    className
+  );
+
   return (
     <button
-      className={`${baseClasses} ${variants[variant]} ${disabled || isLoading ? 'opacity-60 cursor-not-allowed' : ''} ${className}`}
+      className={mergedClasses}
       disabled={disabled || isLoading}
       {...props}
     >

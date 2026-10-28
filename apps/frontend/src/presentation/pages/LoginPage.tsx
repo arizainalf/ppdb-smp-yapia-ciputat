@@ -244,7 +244,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </p>
               <Button
                 onClick={onNavigateRegister}
-                className="w-full text-xs py-2 bg-white text-emerald-900 hover:bg-emerald-50 font-bold shadow-xs cursor-pointer mt-1"
+                className="w-full text-xs py-2 bg-white text-emerald-900 hover:bg-emerald-100 hover:text-emerald-950 font-bold shadow-xs cursor-pointer mt-1"
               >
                 Mulai Pendaftaran Online Sekarang →
               </Button>
@@ -275,7 +275,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
 
             {/* Segmented Tab Switcher: Orang Tua vs Panitia */}
-            <div className="p-6 pb-2">
+            <div className="p-4 sm:p-6 pb-2">
               <div className="flex rounded-2xl bg-slate-100 p-1.5 border border-slate-200">
                 <button
                   type="button"
@@ -311,7 +311,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
 
             {/* Form Body */}
-            <div className="p-6 sm:p-8 space-y-6">
+            <div className="p-4 sm:p-8 space-y-5 sm:space-y-6">
               {errorMsg && (
                 <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-start gap-2.5 animate-in fade-in duration-200">
                   <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
