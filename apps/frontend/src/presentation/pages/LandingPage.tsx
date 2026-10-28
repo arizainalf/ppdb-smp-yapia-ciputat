@@ -178,7 +178,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <Button
               variant="outline"
               onClick={onCheckStatus}
-              className="w-full sm:w-auto px-6 py-3.5 text-base bg-emerald-400 text-slate-800 hover:bg-emerald-800 border border-emerald-400 hover:text-white font-bold shadow-md shadow-emerald-400/20 hover:shadow-emerald-800/30"
+              className="w-full sm:w-auto px-6 py-3.5 text-base bg-transparent hover:bg-emerald-500/20 text-emerald-100 hover:text-white border border-emerald-400/40 hover:border-emerald-400/70 font-bold shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-colors"
             >
               {siteContent.hero.heroCekStatusBtn}
             </Button>
