@@ -168,14 +168,17 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
   }
 
   public async generateNomorPendaftaran(gelombangId: number): Promise<string> {
-    const res = await d1Client.query<{ total: number }>(
-      'SELECT count(*) as total FROM calon_siswa WHERE gelombang_id = ?',
+    // Lanjutkan dari urutan tertinggi yang pernah terpakai (bukan COUNT),
+    // agar nomor tidak ter-issues ulang setelah ada baris yang dihapus.
+    const res = await d1Client.query<{ maks: number | null }>(
+      `SELECT MAX(CAST(SUBSTR(nomor_pendaftaran, -4) AS INTEGER)) as maks
+       FROM calon_siswa WHERE gelombang_id = ?`,
       [gelombangId]
     );
 
-    const count = (res.results[0]?.total ?? 0) + 1;
+    const next = (res.results[0]?.maks ?? 0) + 1;
     const year = new Date().getFullYear();
-    const formattedCount = String(count).padStart(4, '0');
+    const formattedCount = String(next).padStart(4, '0');
     return `REG-${year}-G${gelombangId}-${formattedCount}`;
   }
 }

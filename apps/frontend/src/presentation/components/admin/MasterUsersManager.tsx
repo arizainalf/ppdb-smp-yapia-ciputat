@@ -18,10 +18,20 @@ export const MasterUsersManager: React.FC = () => {
   const [editingUser, setEditingUser] = useState<AdminUserItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const authHeaders = (): Record<string, string> => {
+    const token = localStorage.getItem('yapia_auth_token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users`, {
+        headers: authHeaders(),
+      });
       const json = await res.json();
       if (json.status === 'success' && Array.isArray(json.data)) {
         setUsers(json.data);
@@ -59,6 +69,7 @@ export const MasterUsersManager: React.FC = () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users/${id}`, {
           method: 'DELETE',
+          headers: authHeaders(),
         });
         if (res.ok) {
           await fetchUsers();
@@ -73,6 +84,7 @@ export const MasterUsersManager: React.FC = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/users/${id}/toggle`, {
         method: 'PATCH',
+        headers: authHeaders(),
       });
       if (res.ok) {
         await fetchUsers();
@@ -95,7 +107,7 @@ export const MasterUsersManager: React.FC = () => {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(editingUser),
       });
 

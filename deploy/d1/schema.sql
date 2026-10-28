@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS orang_tua_wali (
 CREATE TABLE IF NOT EXISTS berkas_pendaftaran (
     id TEXT PRIMARY KEY,
     calon_siswa_id TEXT NOT NULL REFERENCES calon_siswa(id) ON DELETE CASCADE,
-    jenis_berkas TEXT NOT NULL CHECK(jenis_berkas IN ('IJAZAH_SKL', 'KARTU_KELUARGA', 'AKTA_KELAHIRAN', 'FOTO', 'KIP_PIP', 'LAINNYA')),
+    jenis_berkas TEXT NOT NULL CHECK(jenis_berkas IN ('IJAZAH_SKL', 'KARTU_KELUARGA', 'AKTA_KELAHIRAN', 'KTP_ORANG_TUA', 'FOTO', 'KIP_PIP', 'LAINNYA')),
     file_url TEXT NOT NULL,
     file_name TEXT NOT NULL,
     file_size_bytes INTEGER NOT NULL,
@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS berkas_pendaftaran (
 );
 
 -- 8. TABEL TRANSAKSI PEMBAYARAN PENDAFTARAN
+-- metode_pembayaran: 'TRIPAY' (payment gateway) atau 'MANUAL' (transfer bank + konfirmasi Bendahara)
 CREATE TABLE IF NOT EXISTS pembayaran_pendaftaran (
     id TEXT PRIMARY KEY,
     calon_siswa_id TEXT NOT NULL REFERENCES calon_siswa(id) ON DELETE CASCADE,
@@ -159,6 +160,22 @@ CREATE TABLE IF NOT EXISTS pembayaran_pendaftaran (
     bukti_bayar_url TEXT,
     tanggal_bayar TEXT,
     diverifikasi_oleh TEXT REFERENCES users(id),
+    pay_reference TEXT,
+    checkout_url TEXT,
+    pay_code TEXT,
+    expired_at TEXT,
+    catatan TEXT,
+    rekening_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+-- 8b. MASTER DATA REKENING BANK (tujuan transfer manual, bisa banyak)
+CREATE TABLE IF NOT EXISTS rekening_bank (
+    id TEXT PRIMARY KEY,
+    nama_bank TEXT NOT NULL,
+    nomor_rekening TEXT NOT NULL,
+    atas_nama TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 

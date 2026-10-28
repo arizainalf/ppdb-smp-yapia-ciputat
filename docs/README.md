@@ -19,6 +19,7 @@ Selamat datang di repositori dokumentasi teknis dan spesifikasi sistem **SIPMB (
 | 8 | **Deployment & Infrastructure (Cloudflare Tunnel)** | Panduan deployment server lokal via Cloudflare Tunnel untuk Vault & container internal. | [DEPLOYMENT_INFRASTRUCTURE_CLOUDFLARE.md](DEPLOYMENT_INFRASTRUCTURE_CLOUDFLARE.md) |
 | 9 | **Software Architecture Patterns (Clean & Layered)** | Standar Clean Architecture pada Backend (Hono) dan Layered Architecture pada Frontend (React.js). | [SOFTWARE_ARCHITECTURE_PATTERNS.md](SOFTWARE_ARCHITECTURE_PATTERNS.md) |
 | 10 | **Panduan Migrasi Schema D1 & Deployment Produksi (SOP)** | Prosedur penambahan kolom/tabel baru di Cloudflare D1, backup database, alur build-deploy via Wrangler, dan custom domain. | [PANDUAN_MIGRASI_SCHEMA_DAN_DEPLOYMENT.md](PANDUAN_MIGRASI_SCHEMA_DAN_DEPLOYMENT.md) |
+| 11 | **Runbook Deployment Produksi (Persiapan → Selesai)** | Checklist end-to-end: prasyarat, secret (JWT/Tripay), migrasi database (0002, 0003), deploy, konfigurasi callback Tripay, uji acceptance, go-live, dan rollback. | [RUNBOOK_DEPLOY_PRODUKSI.md](RUNBOOK_DEPLOY_PRODUKSI.md) |
 
 ---
 

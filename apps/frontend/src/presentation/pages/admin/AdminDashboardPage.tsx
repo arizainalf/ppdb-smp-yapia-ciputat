@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Menu,
+  AlertTriangle,
   Download,
   FileSpreadsheet,
   Bell,
@@ -77,194 +78,30 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
   };
 
   // Mock list with complete audit findings (Afirmasi, Fisik, Observasi, Progressive Statuses)
-  const [pendaftarList, setPendaftarList] = useState<AdminCalonSiswaItem[]>([
-    {
-      id: '10000000-0000-4000-8000-000000000001',
-      nomorPendaftaran: 'REG-2026-G1-0001',
-      namaLengkap: 'ALKA ALHABSY',
-      nisn: '0123456789',
-      nik: '3274011205130001',
-      noKk: '3274011205130000',
-      sekolahAsal: 'SD Negeri Pondok Cabe Ilir 02',
-      npsnAsal: '20603123',
-      kecamatanAsal: 'Pamulang',
-      jenisKelamin: 'L',
-      tempatLahir: 'Jakarta',
-      tanggalLahir: '2013-05-12',
-      agama: 'Islam',
-      alamat: 'Jl. Talas II RT 06/RW 01 No. 19, Pondok Cabe Ilir, Pamulang',
-      namaOrtu: 'Ahmad Fauzi (Ayah)',
-      noHpOrtu: '081298765432',
-      gelombangId: 1,
-      status: 'LOLOS_SELEKSI',
-      tanggalDaftar: '16 Okt 2026',
-      jalurPendaftaran: 'AFIRMASI',
-      nomorKipSktm: 'KIP-2026-992138',
-      pdpConsent: true,
-      verifikasiFisik: {
-        verified: true,
-        verifiedBy: 'Aila Syifa (Staf TU)',
-        verifiedAt: '16 Okt 2026, 10:00',
-        notes: 'Map berkas fisik lengkap di lemari arsip TU, ijazah asli legalisir sesuai.',
-      },
-      observasi: {
-        kemampuanQuran: 'LANCAR_ALQURAN',
-        catatanPendampingan: 'Mandiri / Normal',
-        catatanWawancara: 'Siswa berminat di ekskul Marawis dan Sains Club.',
-        assessedBy: 'Waka Kesiswaan & Guru PAI',
-      },
-      berkas: { ijazah: true, kk: true, akta: true, foto: true, kip: true },
-      catatanPanitia: 'Semua berkas lengkap dan sah. Siap mengikuti MPLS.',
-      auditLogs: [
-        { action: 'Formulir Online Disubmit', actor: 'Wali Murid', timestamp: '15 Okt 2026 14:00' },
-        { action: 'Verifikasi Berkas Fisik Diterima', actor: 'Aila Syifa (TU)', timestamp: '16 Okt 2026 10:00', notes: 'Ijazah & KK asli dicocokkan.' },
-        { action: 'Penetapan Lolos Seleksi', actor: 'Via Aprilian S., S.Kom (Kepsek)', timestamp: '16 Okt 2026 11:30' },
-      ],
-    },
-    {
-      id: '20000000-0000-4000-8000-000000000002',
-      nomorPendaftaran: 'REG-2026-G1-0002',
-      namaLengkap: 'SITI NURHALIZA AMINAH',
-      nisn: '0123456790',
-      nik: '3674015008130002',
-      noKk: '3674015008130000',
-      sekolahAsal: 'MI Yapia Ciputat',
-      npsnAsal: '60721234',
-      kecamatanAsal: 'Ciputat',
-      jenisKelamin: 'P',
-      tempatLahir: 'Tangerang Selatan',
-      tanggalLahir: '2013-08-20',
-      agama: 'Islam',
-      alamat: 'Jl. KH. Dewantara No. 45, Ciputat',
-      namaOrtu: 'Hendra Gunawan (Ayah)',
-      noHpOrtu: '081311223344',
-      gelombangId: 1,
-      status: 'SUBMITTED',
-      tanggalDaftar: '16 Okt 2026',
-      jalurPendaftaran: 'REGULER',
-      pdpConsent: true,
-      verifikasiFisik: {
-        verified: false,
-        notes: 'Menunggu penyerahan berkas fisik ke kantor TU.',
-      },
-      observasi: {
-        kemampuanQuran: 'IQRA_LANJUT',
-        catatanPendampingan: 'Perlu bimbingan tajwid lanjutan',
-      },
-      berkas: { ijazah: true, kk: true, akta: true, foto: true },
-    },
-    {
-      id: '30000000-0000-4000-8000-000000000003',
-      nomorPendaftaran: 'REG-2026-G1-0003',
-      namaLengkap: 'MUHAMMAD FATHAN ATHALLAH',
-      nisn: '0123456791',
-      nik: '3274021402130003',
-      noKk: '3274021402130000',
-      sekolahAsal: 'SD Negeri Cipayung 01',
-      npsnAsal: '20603456',
-      kecamatanAsal: 'Ciputat',
-      jenisKelamin: 'L',
-      tempatLahir: 'Jakarta',
-      tanggalLahir: '2013-02-14',
-      agama: 'Islam',
-      alamat: 'Jl. Cipayung Raya No. 12, Ciputat',
-      namaOrtu: 'Dewi Lestari (Ibu)',
-      noHpOrtu: '085799887766',
-      gelombangId: 1,
-      status: 'REVISI',
-      tanggalDaftar: '15 Okt 2026',
-      jalurPendaftaran: 'AFIRMASI',
-      nomorKipSktm: '470/12/SKTM/2026',
-      pdpConsent: true,
-      verifikasiFisik: {
-        verified: false,
-        notes: 'Fotokopi KK terpotong pada bagian tanda tangan kepala dinas dukcapil.',
-      },
-      berkas: { ijazah: true, kk: true, akta: false, foto: true, kip: true },
-      catatanPanitia: 'Scan Akta Kelahiran buram, mohon unggah ulang melalui portal pendaftaran.',
-    },
-    {
-      id: '40000000-0000-4000-8000-000000000004',
-      nomorPendaftaran: 'REG-2026-G1-0004',
-      namaLengkap: 'BILAL AL-GHIFARI',
-      nisn: '0123456792',
-      nik: '3674030511130004',
-      noKk: '3674030511130000',
-      sekolahAsal: 'SDIT Al-Hikmah Ciputat',
-      npsnAsal: '69912345',
-      kecamatanAsal: 'Ciputat',
-      jenisKelamin: 'L',
-      tempatLahir: 'Tangerang Selatan',
-      tanggalLahir: '2013-11-05',
-      agama: 'Islam',
-      alamat: 'Komplek Kejaksaan Agung No. 8, Ciputat',
-      namaOrtu: 'Bambang Irawan (Ayah)',
-      noHpOrtu: '081288990011',
-      gelombangId: 1,
-      status: 'MENGIKUTI_MPLS',
-      tanggalDaftar: '16 Okt 2026',
-      jalurPendaftaran: 'PRESTASI',
-      pdpConsent: true,
-      verifikasiFisik: {
-        verified: true,
-        verifiedBy: 'Aila Syifa (Staf TU)',
-        verifiedAt: '16 Okt 2026',
-        notes: 'Sertifikat tahfidz Juz 30 asli telah dicocokkan.',
-      },
-      observasi: {
-        kemampuanQuran: 'TAHFIDZ',
-        catatanPendampingan: 'Mandiri / Kelas Prestasi Tahfidz',
-        catatanWawancara: 'Hafal Juz 30 mutqin dan siap ikut lomba MTQ.',
-      },
-      berkas: { ijazah: true, kk: true, akta: true, foto: true },
-    },
-    {
-      id: '50000000-0000-4000-8000-000000000005',
-      nomorPendaftaran: 'REG-2026-G1-0005',
-      namaLengkap: 'AULIA RAHMADHANI',
-      nisn: '0123456793',
-      nik: '3276044907130005',
-      noKk: '3276044907130000',
-      sekolahAsal: 'SD Negeri Serua 03',
-      npsnAsal: '20603789',
-      kecamatanAsal: 'Ciputat',
-      jenisKelamin: 'P',
-      tempatLahir: 'Depok',
-      tanggalLahir: '2013-07-09',
-      agama: 'Islam',
-      alamat: 'Jl. Sukabakti No. 22, Serua Indah',
-      namaOrtu: 'Surya Pratama (Ayah)',
-      noHpOrtu: '081900112233',
-      gelombangId: 1,
-      status: 'DITERIMA_RESMI',
-      tanggalDaftar: '16 Okt 2026',
-      jalurPendaftaran: 'REGULER',
-      pdpConsent: true,
-      verifikasiFisik: {
-        verified: true,
-        verifiedBy: 'Aila Syifa (Staf TU)',
-        verifiedAt: '16 Okt 2026',
-        notes: 'Seluruh berkas fisik lengkap.',
-      },
-      observasi: {
-        kemampuanQuran: 'LANCAR_ALQURAN',
-        catatanPendampingan: 'Mandiri / Rombel 7A',
-      },
-      berkas: { ijazah: true, kk: true, akta: true, foto: true },
-    },
-  ]);
+  const [pendaftarList, setPendaftarList] = useState<AdminCalonSiswaItem[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [selectedPendaftar, setSelectedPendaftar] = useState<AdminCalonSiswaItem | null>(null);
 
   const fetchPendaftarList = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa`);
+      const token = localStorage.getItem('yapia_auth_token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+      if (res.status === 401 || res.status === 403) {
+        setPendaftarList([]);
+        setLoadError('Sesi berakhir atau akses ditolak. Silakan login ulang sebagai panitia.');
+        return;
+      }
+      if (json.status === 'success' && Array.isArray(json.data)) {
         setPendaftarList(json.data);
+        setLoadError(null);
       }
     } catch (err) {
       console.error('Gagal mengambil data pendaftar dari backend:', err);
+      setLoadError('Gagal menghubungi server. Pastikan backend aktif.');
     }
   };
 
@@ -315,9 +152,13 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
 
     // 2. Persist ke database backend Hono
     try {
+      const token = localStorage.getItem('yapia_auth_token');
       await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/calon-siswa/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           status: newStatus,
           catatan,
@@ -543,6 +384,20 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
           {/* View: PENDAFTAR TABLE */}
           {activeMenu === 'pendaftar' && (
             <div className="space-y-6 animate-in fade-in duration-200">
+              {loadError && (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-rose-800">{loadError}</p>
+                    <button
+                      onClick={fetchPendaftarList}
+                      className="text-xs font-bold text-rose-700 hover:underline mt-1 cursor-pointer"
+                    >
+                      Coba Muat Ulang
+                    </button>
+                  </div>
+                </div>
+              )}
               <PendaftarTable
                 data={pendaftarList}
                 onSelectPendaftar={(item) => setSelectedPendaftar(item)}

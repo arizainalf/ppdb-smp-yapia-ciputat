@@ -77,8 +77,8 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
   // Jika Orang Tua sudah login, langsung tampilkan data pendaftar miliknya
   useEffect(() => {
     if (isParentLoggedIn && user) {
-      const searchTerm = user.noHp || user.email || 'REG-2026-G1-0001';
-      searchStudent(searchTerm);
+      const searchTerm = user.noHp || user.email;
+      if (searchTerm) searchStudent(searchTerm);
     }
   }, [isParentLoggedIn, user]);
 
@@ -171,11 +171,11 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
             Pelacakan Terpadu SPMB
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-xl font-black text-slate-600 tracking-tight">
             Cek Status Pendaftaran & SK Kelulusan
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Masukkan <strong>Nomor Registrasi</strong> (contoh: <code>REG-2026-G1-0001</code>) atau <strong>NISN 10 digit</strong> untuk memeriksa verifikasi berkas dan mengunduh SK Resmi.
+            Masukkan <strong>Nomor Registrasi</strong> (format: <code>REG-2026-GX-XXXX</code>) atau <strong>NISN 10 digit</strong> untuk memeriksa verifikasi berkas dan mengunduh SK Resmi.
           </p>
         </div>
       )}
@@ -218,7 +218,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
               required
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Contoh: REG-2026-G1-0001, 0123456789, atau 081299887766"
+              placeholder="Contoh format: REG-2026-G1-0001, 0123456789, atau 0812XXXXXXX"
             />
           </div>
           <div className="sm:self-end">
@@ -489,7 +489,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Silakan periksa kembali nomor registrasi yang tertera pada lembar formulir Anda atau hubungi panitia SPMB.
           </p>
-          <Button onClick={onNewRegistration} className="mt-2 text-xs">
+          <Button onClick={onNewRegistration} className="mx-auto mt-4 px-6 py-2.5 text-xs">
             Daftar Calon Siswa Baru
           </Button>
         </div>

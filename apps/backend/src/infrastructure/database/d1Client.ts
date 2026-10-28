@@ -135,6 +135,70 @@ export class D1Client {
           updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
+
+      // Migrasi 0002: kolom payment gateway (Tripay) pada pembayaran_pendaftaran
+      const paymentColumns = ['pay_reference', 'checkout_url', 'pay_code', 'expired_at', 'catatan'];
+      for (const col of paymentColumns) {
+        try {
+          db.exec(`ALTER TABLE pembayaran_pendaftaran ADD COLUMN ${col} TEXT;`);
+        } catch {
+          // Kolom sudah ada — aman diabaikan
+        }
+      }
+
+      // Migrasi 0004: master data rekening bank
+      try {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS rekening_bank (
+            id TEXT PRIMARY KEY,
+            nama_bank TEXT NOT NULL,
+            nomor_rekening TEXT NOT NULL,
+            atas_nama TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+          );
+        `);
+        try {
+          db.exec('ALTER TABLE pembayaran_pendaftaran ADD COLUMN rekening_id TEXT;');
+        } catch {}
+        const cnt = db.prepare('SELECT COUNT(*) as c FROM rekening_bank').all() as any[];
+        if ((cnt[0]?.c ?? 0) === 0) {
+          db.prepare(
+            "INSERT INTO rekening_bank (id, nama_bank, nomor_rekening, atas_nama, is_active) VALUES ('rek-bsi-ppdb', 'Bank Syariah Indonesia (BSI)', '7211 8922 13', 'PANITIA PPDB SMP YAPIA CIPUTAT', 1)"
+          ).run();
+        }
+      } catch (rekErr: any) {
+        console.warn(`⚠️ [D1Client] Migrasi 0004 dilewati: ${rekErr.message}`);
+      }
+
+      // Migrasi 0003: tambah jenis berkas KTP_ORANG_TUA (rebuild CHECK constraint)
+      try {
+        const berkasSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='berkas_pendaftaran'").all() as any[];
+        if (berkasSchema[0]?.sql && !String(berkasSchema[0].sql).includes('KTP_ORANG_TUA')) {
+          db.exec('PRAGMA foreign_keys = OFF;');
+          db.exec(`
+            CREATE TABLE berkas_pendaftaran_new (
+              id TEXT PRIMARY KEY,
+              calon_siswa_id TEXT NOT NULL REFERENCES calon_siswa(id) ON DELETE CASCADE,
+              jenis_berkas TEXT NOT NULL CHECK(jenis_berkas IN ('IJAZAH_SKL', 'KARTU_KELUARGA', 'AKTA_KELAHIRAN', 'KTP_ORANG_TUA', 'FOTO', 'KIP_PIP', 'LAINNYA')),
+              file_url TEXT NOT NULL,
+              file_name TEXT NOT NULL,
+              file_size_bytes INTEGER NOT NULL,
+              mime_type TEXT NOT NULL,
+              status_verifikasi TEXT NOT NULL DEFAULT 'PENDING' CHECK(status_verifikasi IN ('PENDING', 'VALID', 'INVALID')),
+              catatan_verifikasi TEXT,
+              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            );
+            INSERT INTO berkas_pendaftaran_new SELECT id, calon_siswa_id, jenis_berkas, file_url, file_name, file_size_bytes, mime_type, status_verifikasi, catatan_verifikasi, created_at FROM berkas_pendaftaran;
+            DROP TABLE berkas_pendaftaran;
+            ALTER TABLE berkas_pendaftaran_new RENAME TO berkas_pendaftaran;
+          `);
+          db.exec('PRAGMA foreign_keys = ON;');
+          console.log('✅ [D1Client] Migrasi 0003 diterapkan: jenis berkas KTP_ORANG_TUA');
+        }
+      } catch (migrasiErr: any) {
+        console.warn(`⚠️ [D1Client] Migrasi 0003 dilewati: ${migrasiErr.message}`);
+      }
     } catch (bootstrapErr: any) {
       console.error(`⚠️ [D1Client] Gagal auto-bootstrap schema:`, bootstrapErr.message);
     }

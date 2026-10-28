@@ -8,6 +8,7 @@ import { Step2SekolahAsal } from '../components/wizard/Step2SekolahAsal.js';
 import { Step3Alamat } from '../components/wizard/Step3Alamat.js';
 import { Step4OrangTua } from '../components/wizard/Step4OrangTua.js';
 import { Step5UploadBerkas } from '../components/wizard/Step5UploadBerkas.js';
+import { PaymentModal } from '../components/wizard/PaymentModal.js';
 import { BuktiPendaftaranModal } from '../components/wizard/BuktiPendaftaranModal.js';
 import { calonSiswaService } from '../../infrastructure/api/calonSiswaService.js';
 import { ArrowLeft } from 'lucide-react';
@@ -20,6 +21,7 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
   const { currentStep, formData, updateFormData } = useRegistrationWizardContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBuktiModal, setShowBuktiModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [nomorRegistrasi, setNomorRegistrasi] = useState('REG-2026-G1-0001');
 
   const stepTitles = [
@@ -58,7 +60,7 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
         setNomorRegistrasi(res.data.nomorPendaftaran);
         updateFormData({ nomorPendaftaran: res.data.nomorPendaftaran });
       }
-      setShowBuktiModal(true);
+      setShowPaymentModal(true);
     } catch (e: any) {
       console.error('Pendaftaran gagal:', e);
       alert('Pendaftaran gagal: ' + (e.message || 'Koneksi ke server bermasalah'));
@@ -139,6 +141,18 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
           />
         )}
       </div>
+
+      {/* Payment Modal (Tripay / Transfer Manual) */}
+      {showPaymentModal && (
+        <PaymentModal
+          nomorPendaftaran={nomorRegistrasi}
+          gelombangId={Number(formData.gelombangId) || 1}
+          onDone={() => {
+            setShowPaymentModal(false);
+            setShowBuktiModal(true);
+          }}
+        />
+      )}
 
       {/* Bukti Pendaftaran Modal */}
       {showBuktiModal && (

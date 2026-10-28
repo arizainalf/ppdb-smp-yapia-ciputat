@@ -18,12 +18,12 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { login, loginPendaftar, loginAsDemo } = useAuth();
+  const { login, loginPendaftar } = useAuth();
   const [loginType, setLoginType] = useState<'pendaftar' | 'panitia'>('pendaftar');
 
   // Fields for Pendaftar (WA + Email only)
-  const [noHpPendaftar, setNoHpPendaftar] = useState('081299887766');
-  const [emailPendaftar, setEmailPendaftar] = useState('pendaftar@yapia.sch.id');
+  const [noHpPendaftar, setNoHpPendaftar] = useState('');
+  const [emailPendaftar, setEmailPendaftar] = useState('');
 
   // Fields for Panitia (Akun + Password)
   const [noHpPanitia, setNoHpPanitia] = useState('');
@@ -74,12 +74,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
     } else {
       setErrorMsg(res.message || 'Login panitia gagal.');
     }
-  };
-
-  const handleDemoSelect = (role: 'KEPSEK' | 'OPERATOR' | 'BENDAHARA' | 'ADMIN' | 'PENDAFTAR') => {
-    const u = loginAsDemo(role);
-    if (onSuccess) onSuccess(u);
-    onClose();
   };
 
   return (
@@ -237,91 +231,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
               </Button>
             </form>
           )}
-
-          {/* Quick 1-Click Demo Logins */}
-          <div className="border-t border-slate-100 pt-3 space-y-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">
-              Akses Cepat Pengujian Demo (1-Klik)
-            </span>
-
-            {/* Orang Tua Demo Button */}
-            <button
-              type="button"
-              onClick={() => handleDemoSelect('PENDAFTAR')}
-              className="w-full p-2.5 rounded-xl border border-teal-300 bg-teal-50 hover:bg-teal-100/80 text-teal-950 font-semibold text-left transition-colors flex items-center gap-2.5 shadow-2xs cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-lg bg-teal-700 text-white flex items-center justify-center shrink-0 text-sm">
-                👨‍👩‍👦
-              </div>
-              <div className="overflow-hidden">
-                <span className="font-bold block text-xs text-teal-950">
-                  Demo Akun Orang Tua (Alka Alhabsy)
-                </span>
-                <span className="text-[10px] text-teal-700 truncate block">
-                  WA: 081299887766 • Email: pendaftar@yapia.sch.id
-                </span>
-              </div>
-            </button>
-
-            {/* Panitia Demo Buttons */}
-            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('KEPSEK')}
-                className="p-2 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100/70 text-indigo-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 text-xs">
-                  🎓
-                </div>
-                <div className="overflow-hidden">
-                  <span className="font-bold block text-[11px] truncate">Kepala Sekolah</span>
-                  <span className="text-[9px] text-indigo-600 block truncate">Via Aprilian</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('OPERATOR')}
-                className="p-2 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-blue-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs">
-                  💻
-                </div>
-                <div className="overflow-hidden">
-                  <span className="font-bold block text-[11px] truncate">Operator Dapodik</span>
-                  <span className="text-[9px] text-blue-600 block truncate">Ruslan Setiawan</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('BENDAHARA')}
-                className="p-2 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/70 text-amber-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <div className="w-6 h-6 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0 text-xs">
-                  💵
-                </div>
-                <div className="overflow-hidden">
-                  <span className="font-bold block text-[11px] truncate">Bendahara PPDB</span>
-                  <span className="text-[9px] text-amber-700 block truncate">Verifikasi Infak</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('ADMIN')}
-                className="p-2 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs">
-                  👑
-                </div>
-                <div className="overflow-hidden">
-                  <span className="font-bold block text-[11px] truncate">Super Admin</span>
-                  <span className="text-[9px] text-emerald-700 block truncate">Akses Penuh</span>
-                </div>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

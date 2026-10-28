@@ -17,6 +17,7 @@ export type Permission =
   | 'APPROVE_KELULUSAN'
   | 'EXPORT_DAPODIK'
   | 'MANAGE_GELOMBANG'
+  | 'MANAGE_MASTER_DATA'
   | 'MANAGE_USERS'
   | 'MANAGE_CONTENT'
   | 'MANAGE_HELPDESK'
@@ -34,6 +35,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'APPROVE_KELULUSAN',
     'EXPORT_DAPODIK',
     'MANAGE_GELOMBANG',
+    'MANAGE_MASTER_DATA',
     'MANAGE_USERS',
     'MANAGE_CONTENT',
     'MANAGE_HELPDESK',
@@ -111,6 +113,7 @@ export const JENIS_BERKAS = {
   IJAZAH_SKL: 'IJAZAH_SKL',
   KARTU_KELUARGA: 'KARTU_KELUARGA',
   AKTA_KELAHIRAN: 'AKTA_KELAHIRAN',
+  KTP_ORANG_TUA: 'KTP_ORANG_TUA',
   FOTO: 'FOTO',
   KIP_PIP: 'KIP_PIP',
   SKTM: 'SKTM',
@@ -129,6 +132,13 @@ export const STATUS_PEMBAYARAN = {
 } as const;
 
 export type StatusPembayaran = (typeof STATUS_PEMBAYARAN)[keyof typeof STATUS_PEMBAYARAN];
+
+export const METODE_PEMBAYARAN = {
+  TRIPAY: 'TRIPAY', // Payment gateway (QRIS / e-wallet / VA via Tripay)
+  MANUAL: 'MANUAL', // Konfirmasi transfer bank manual oleh Bendahara
+} as const;
+
+export type MetodePembayaran = (typeof METODE_PEMBAYARAN)[keyof typeof METODE_PEMBAYARAN];
 
 export const KATEGORI_HELPDESK = {
   INFO_PENDAFTARAN: 'INFO_PENDAFTARAN',

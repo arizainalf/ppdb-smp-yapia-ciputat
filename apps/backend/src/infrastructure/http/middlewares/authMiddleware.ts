@@ -1,9 +1,21 @@
 import { Context, Next } from 'hono';
 import { UserRole, hasPermission, Permission } from '@yapia/shared';
+import { verifyJwt } from '../../crypto/jwt.js';
 
 export interface AuthContextVariables {
   userRole?: UserRole;
   userId?: string;
+  userName?: string;
+}
+
+// Secret bersifat wajib di produksi; fallback dev hanya agar lokal tetap jalan.
+function getJwtSecret(c: Context): string {
+  const secret = ((c.env as any)?.JWT_SECRET as string | undefined) || process.env?.JWT_SECRET;
+  if (!secret) {
+    console.warn('⚠️ [Auth] JWT_SECRET tidak diset — memakai secret development. WAJIB diset di produksi!');
+    return 'sipmb-dev-secret-ganti-di-produksi';
+  }
+  return secret;
 }
 
 export function requireAuth() {
@@ -20,22 +32,20 @@ export function requireAuth() {
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    // In demo environment, token format: mock-jwt-token-{userId}-{timestamp} or demo-token-{role}
-    let role: UserRole = 'ADMIN';
-
-    if (token.includes('OPERATOR') || token.includes('usr-operator') || token.includes('usr-tu')) {
-      role = 'OPERATOR';
-    } else if (token.includes('KEPSEK') || token.includes('usr-kepsek')) {
-      role = 'KEPSEK';
-    } else if (token.includes('BENDAHARA') || token.includes('usr-bendahara')) {
-      role = 'BENDAHARA';
-    } else if (token.includes('PENDAFTAR')) {
-      role = 'PENDAFTAR';
+    const payload = await verifyJwt(authHeader.replace('Bearer ', ''), getJwtSecret(c));
+    if (!payload) {
+      return c.json(
+        {
+          status: 'fail',
+          message: 'Akses ditolak: Token tidak valid atau sudah kedaluwarsa. Silakan login ulang.',
+        },
+        401
+      );
     }
 
-    c.set('userRole' as any, role);
-    c.set('userId' as any, 'active-user-id');
+    c.set('userRole' as any, payload.role);
+    c.set('userId' as any, payload.sub);
+    c.set('userName' as any, payload.nama);
 
     await next();
   };

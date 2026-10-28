@@ -94,6 +94,7 @@ export interface RegistrationFormData {
   kkUploaded: boolean;
   aktaUploaded: boolean;
   fotoUploaded: boolean;
+  ktpOrtuUploaded?: boolean;
   kipUploaded?: boolean;
   pernyataanKebenaran: boolean;
   pdpConsent: boolean;

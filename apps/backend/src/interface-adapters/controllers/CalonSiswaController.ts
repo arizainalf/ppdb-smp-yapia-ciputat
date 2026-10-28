@@ -19,17 +19,17 @@ export class CalonSiswaController {
           cs.id,
           cs.nomor_pendaftaran as nomorPendaftaran,
           cs.nama_lengkap as namaLengkap,
-          COALESCE(sa.nisn, '0123456789') as nisn,
-          COALESCE(sa.nama_sekolah, 'SD Negeri di Tangerang Selatan') as sekolahAsal,
-          COALESCE(sa.npsn, '20603123') as npsnAsal,
-          COALESCE(al.kecamatan, 'Ciputat') as kecamatanAsal,
+          sa.nisn,
+          sa.nama_sekolah as sekolahAsal,
+          sa.npsn as npsnAsal,
+          al.kecamatan as kecamatanAsal,
           cs.jenis_kelamin as jenisKelamin,
           cs.tempat_lahir as tempatLahir,
           cs.tanggal_lahir as tanggalLahir,
           cs.agama as agama,
-          COALESCE(al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan, al.jalan, 'Ciputat, Tangerang Selatan') as alamat,
-          COALESCE(otw.nama_lengkap || ' (' || otw.hubungan || ')', otw.nama_lengkap, 'Orang Tua Murid') as namaOrtu,
-          COALESCE(otw.no_hp, cs.no_hp_siswa, '-') as noHpOrtu,
+          al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan as alamat,
+          otw.nama_lengkap as namaOrtu,
+          COALESCE(otw.no_hp, cs.no_hp_siswa) as noHpOrtu,
           cs.gelombang_id as gelombangId,
           cs.status_pendaftaran as status,
           cs.created_at as tanggalDaftar,
@@ -42,7 +42,13 @@ export class CalonSiswaController {
           cs.verifikasi_fisik_notes as verifikasiFisikNotes,
           cs.kemampuan_quran as observasiQuran,
           cs.catatan_pendampingan as catatanPendampingan,
-          cs.catatan_wawancara as catatanWawancara
+          cs.catatan_wawancara as catatanWawancara,
+          EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'IJAZAH_SKL') as berkasIjazah,
+          EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'KARTU_KELUARGA') as berkasKk,
+          EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'AKTA_KELAHIRAN') as berkasAkta,
+          EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'FOTO') as berkasFoto,
+          (SELECT status_pembayaran FROM pembayaran_pendaftaran WHERE calon_siswa_id = cs.id ORDER BY created_at DESC LIMIT 1) as statusPembayaran,
+          (SELECT metode_pembayaran FROM pembayaran_pendaftaran WHERE calon_siswa_id = cs.id ORDER BY created_at DESC LIMIT 1) as metodePembayaran
         FROM calon_siswa cs
         LEFT JOIN sekolah_asal sa ON cs.id = sa.calon_siswa_id
         LEFT JOIN alamat_siswa al ON cs.id = al.calon_siswa_id
@@ -56,36 +62,45 @@ export class CalonSiswaController {
         id: r.id,
         nomorPendaftaran: r.nomorPendaftaran,
         namaLengkap: r.namaLengkap,
-        nisn: r.nisn,
-        sekolahAsal: r.sekolahAsal,
-        npsnAsal: r.npsnAsal,
-        kecamatanAsal: r.kecamatanAsal,
+        nisn: r.nisn || '-',
+        sekolahAsal: r.sekolahAsal || '-',
+        npsnAsal: r.npsnAsal || '-',
+        kecamatanAsal: r.kecamatanAsal || '-',
         jenisKelamin: r.jenisKelamin,
         tempatLahir: r.tempatLahir,
         tanggalLahir: r.tanggalLahir,
         agama: r.agama,
-        alamat: r.alamat,
-        namaOrtu: r.namaOrtu,
-        noHpOrtu: r.noHpOrtu,
+        alamat: r.alamat || '-',
+        namaOrtu: r.namaOrtu || '-',
+        noHpOrtu: r.noHpOrtu || '-',
         gelombangId: r.gelombangId,
         status: r.status,
-        tanggalDaftar: r.tanggalDaftar ? new Date(r.tanggalDaftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '16 Okt 2026',
+        tanggalDaftar: r.tanggalDaftar ? new Date(r.tanggalDaftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         jalurPendaftaran: r.jalurPendaftaran,
-        nomorKipSktm: r.nomorKipSktm,
+        nomorKipSktm: r.nomorKipSktm || '',
         pdpConsent: Boolean(r.pdpConsent),
         verifikasiFisik: {
           verified: Boolean(r.verifikasiFisikVerified),
-          verifiedBy: r.verifikasiFisikBy || 'Staf Tata Usaha',
+          verifiedBy: r.verifikasiFisikBy || '',
           verifiedAt: r.verifikasiFisikAt || '',
           notes: r.verifikasiFisikNotes || '',
         },
         observasi: {
-          kemampuanQuran: r.observasiQuran || 'LANCAR_ALQURAN',
-          catatanPendampingan: r.catatanPendampingan || 'Mandiri / Normal',
+          ...(r.observasiQuran ? { kemampuanQuran: r.observasiQuran } : {}),
+          catatanPendampingan: r.catatanPendampingan || '',
           catatanWawancara: r.catatanWawancara || '',
         },
-        berkas: { ijazah: true, kk: true, akta: true, foto: true },
-        catatanPanitia: r.verifikasiFisikNotes || 'Data telah tersimpan di sistem SIPMB.',
+        berkas: {
+          ijazah: Boolean(r.berkasIjazah),
+          kk: Boolean(r.berkasKk),
+          akta: Boolean(r.berkasAkta),
+          foto: Boolean(r.berkasFoto),
+        },
+        catatanPanitia: r.verifikasiFisikNotes || '',
+        pembayaran: {
+          status: r.statusPembayaran || 'UNPAID',
+          metode: r.metodePembayaran || null,
+        },
       }));
 
       return c.json(
@@ -107,22 +122,45 @@ export class CalonSiswaController {
         return c.json(JSendPresenter.fail('Parameter query wajib disertakan'), 400);
       }
 
+      // Pencocokan kondisional: hanya terapkan LIKE email/NISN/HP jika input
+      // benar-benar berformat tersebut, agar input acak tidak cocok semua baris.
+      const digits = q.replace(/[^0-9]/g, '');
+      const conditions: string[] = ['cs.id = ?', 'UPPER(cs.nomor_pendaftaran) = UPPER(?)'];
+      const params: any[] = [q, q];
+
+      if (q.includes('@')) {
+        conditions.push('LOWER(cs.email) = LOWER(?)');
+        params.push(q.trim().toLowerCase());
+      }
+      if (/^[0-9]{10}$/.test(digits)) {
+        conditions.push('sa.nisn = ?');
+        params.push(digits);
+      }
+      if (digits.length >= 8) {
+        const phonePart = `%${digits.slice(-8)}%`;
+        conditions.push('cs.no_hp_siswa LIKE ?', 'otw.no_hp LIKE ?');
+        params.push(phonePart, phonePart);
+      }
+
+      const whereSql = conditions.join('\n           OR ');
+      const whereParams = params;
+
       const query = `
         SELECT
           cs.id,
           cs.nomor_pendaftaran as nomorPendaftaran,
           cs.nama_lengkap as namaLengkap,
-          COALESCE(sa.nisn, '0123456789') as nisn,
-          COALESCE(sa.nama_sekolah, 'SD Negeri di Tangerang Selatan') as sekolahAsal,
-          COALESCE(sa.npsn, '20603123') as npsnAsal,
-          COALESCE(al.kecamatan, 'Ciputat') as kecamatanAsal,
+          sa.nisn,
+          sa.nama_sekolah as sekolahAsal,
+          sa.npsn as npsnAsal,
+          al.kecamatan as kecamatanAsal,
           cs.jenis_kelamin as jenisKelamin,
           cs.tempat_lahir as tempatLahir,
           cs.tanggal_lahir as tanggalLahir,
           cs.agama as agama,
-          COALESCE(al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan, al.jalan, 'Ciputat, Tangerang Selatan') as alamat,
-          COALESCE(otw.nama_lengkap || ' (' || otw.hubungan || ')', otw.nama_lengkap, 'Orang Tua Murid') as namaOrtu,
-          COALESCE(otw.no_hp, cs.no_hp_siswa, '-') as noHpOrtu,
+          al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan as alamat,
+          otw.nama_lengkap as namaOrtu,
+          COALESCE(otw.no_hp, cs.no_hp_siswa) as noHpOrtu,
           cs.gelombang_id as gelombangId,
           cs.status_pendaftaran as status,
           cs.created_at as tanggalDaftar,
@@ -140,17 +178,11 @@ export class CalonSiswaController {
         LEFT JOIN sekolah_asal sa ON cs.id = sa.calon_siswa_id
         LEFT JOIN alamat_siswa al ON cs.id = al.calon_siswa_id
         LEFT JOIN orang_tua_wali otw ON cs.id = otw.calon_siswa_id
-        WHERE cs.id = ?
-           OR UPPER(cs.nomor_pendaftaran) = UPPER(?)
-           OR sa.nisn = ?
-           OR cs.no_hp_siswa LIKE ?
-           OR otw.no_hp LIKE ?
-           OR LOWER(cs.email) = LOWER(?)
+        WHERE ${whereSql}
         LIMIT 1
       `;
 
-      const cleanPhone = `%${q.replace(/[^0-9]/g, '').slice(-8)}%`;
-      const res = await d1Client.query<any>(query, [q, q, q, cleanPhone, cleanPhone, q]);
+      const res = await d1Client.query<any>(query, whereParams);
 
       if (res.results.length === 0) {
         return c.json(JSendPresenter.fail('Data pendaftaran tidak ditemukan', { query: q }), 404);
@@ -161,16 +193,16 @@ export class CalonSiswaController {
         id: r.id,
         nomorPendaftaran: r.nomorPendaftaran,
         namaLengkap: r.namaLengkap,
-        nisn: r.nisn,
-        sekolahAsal: r.sekolahAsal,
-        gelombang: `Gelombang ${r.gelombangId} (T.A 2026/2027)`,
+        nisn: r.nisn || '-',
+        sekolahAsal: r.sekolahAsal || '-',
+        gelombang: r.gelombangId ? `Gelombang ${r.gelombangId} (T.A 2026/2027)` : '-',
         status: r.status,
-        jalur: r.jalurPendaftaran === 'AFIRMASI' ? `AFIRMASI (KIP: ${r.nomorKipSktm || '-'})` : r.jalurPendaftaran,
-        tanggalDaftar: r.tanggalDaftar ? new Date(r.tanggalDaftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '16 Oktober 2026',
+        jalur: r.jalurPendaftaran === 'AFIRMASI' ? `AFIRMASI (KIP: ${r.nomorKipSktm || '-'})` : (r.jalurPendaftaran || '-'),
+        tanggalDaftar: r.tanggalDaftar ? new Date(r.tanggalDaftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-',
         verifikasiFisik: Boolean(r.verifikasiFisikVerified),
-        observasiQuran: r.observasiQuran || 'Lancar Baca Al-Quran (LANCAR_ALQURAN)',
-        rombel: 'Kelas 7A',
-        catatanPanitia: r.verifikasiFisikNotes || 'Data pendaftaran telah terverifikasi dalam pangkalan data SIPMB.',
+        observasiQuran: r.observasiQuran || '',
+        rombel: '',
+        catatanPanitia: r.verifikasiFisikNotes || 'Belum ada catatan panitia.',
       };
 
       return c.json(JSendPresenter.success(data), 200);
@@ -268,7 +300,7 @@ export class CalonSiswaController {
             [
               crypto.randomUUID(),
               result.id,
-              'Ayah/Wali',
+              'AYAH',
               body.namaOrtu || body.namaAyah || body.namaIbu || 'Wali Murid',
               body.noHpOrtu || body.noHpSiswa || '-',
             ]

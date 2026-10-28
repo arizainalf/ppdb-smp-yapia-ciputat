@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
+import { hashPassword } from '../../crypto/password.js';
+import { requireAuth, requirePermission } from '../middlewares/authMiddleware.js';
 
 interface RawUser {
   id: string;
@@ -15,8 +17,11 @@ interface RawUser {
 export function createUsersRouter(): Hono {
   const router = new Hono();
 
+  // Semua endpoint manajemen panitia wajib login (JWT asli)
+  router.use('*', requireAuth());
+
   // 1. GET ALL PANITIA USERS
-  router.get('/', async (c) => {
+  router.get('/', requirePermission('VIEW_DASHBOARD'), async (c) => {
     try {
       const res = await d1Client.query<RawUser>(
         'SELECT id, nama_lengkap, no_hp, email, role, is_active, created_at FROM users ORDER BY created_at ASC'
@@ -39,7 +44,7 @@ export function createUsersRouter(): Hono {
   });
 
   // 2. CREATE NEW PANITIA USER
-  router.post('/', async (c) => {
+  router.post('/', requirePermission('MANAGE_USERS'), async (c) => {
     try {
       const body = await c.req.json();
       const { namaLengkap, noHp, email, role, isActive, password } = body;
@@ -49,7 +54,7 @@ export function createUsersRouter(): Hono {
       }
 
       const id = crypto.randomUUID();
-      const passwordHash = password || 'password123';
+      const passwordHash = await hashPassword(password || 'password123');
 
       await d1Client.query(
         `INSERT INTO users (id, nama_lengkap, no_hp, email, password_hash, role, is_active)
@@ -64,7 +69,7 @@ export function createUsersRouter(): Hono {
   });
 
   // 3. UPDATE PANITIA USER
-  router.put('/:id', async (c) => {
+  router.put('/:id', requirePermission('MANAGE_USERS'), async (c) => {
     try {
       const id = c.req.param('id');
       const body = await c.req.json();
@@ -85,7 +90,7 @@ export function createUsersRouter(): Hono {
   });
 
   // 4. TOGGLE ACTIVE (ON/OFF)
-  router.patch('/:id/toggle', async (c) => {
+  router.patch('/:id/toggle', requirePermission('MANAGE_USERS'), async (c) => {
     try {
       const id = c.req.param('id');
       const check = await d1Client.query<{ is_active: number }>(
@@ -117,7 +122,7 @@ export function createUsersRouter(): Hono {
   });
 
   // 5. DELETE PANITIA USER
-  router.delete('/:id', async (c) => {
+  router.delete('/:id', requirePermission('MANAGE_USERS'), async (c) => {
     try {
       const id = c.req.param('id');
       await d1Client.query('DELETE FROM users WHERE id = ?', [id]);

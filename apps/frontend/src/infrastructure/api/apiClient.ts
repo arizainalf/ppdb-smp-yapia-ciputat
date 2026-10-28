@@ -23,8 +23,20 @@ class ApiClient {
     });
   }
 
+  public async put<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  public async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
   private async request<T>(endpoint: string, options: RequestInit): Promise<ApiResponse<T>> {
-    const token = localStorage.getItem('sipmb_auth_token');
+    const token = localStorage.getItem('yapia_auth_token') || localStorage.getItem('sipmb_auth_token');
     const headers = new Headers(options.headers);
 
     if (token) {

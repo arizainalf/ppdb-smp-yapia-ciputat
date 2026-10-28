@@ -1,6 +1,18 @@
 import { Hono } from 'hono';
 import { loginSchema } from '@yapia/shared';
 import { d1Client } from '../../database/d1Client.js';
+import { verifyPassword, hashPassword } from '../../crypto/password.js';
+import { signJwt } from '../../crypto/jwt.js';
+import { Context } from 'hono';
+
+function getJwtSecret(c: Context): string {
+  const secret = ((c.env as any)?.JWT_SECRET as string | undefined) || process.env?.JWT_SECRET;
+  if (!secret) {
+    console.warn('⚠️ [Auth] JWT_SECRET tidak diset — memakai secret development. WAJIB diset di produksi!');
+    return 'sipmb-dev-secret-ganti-di-produksi';
+  }
+  return secret;
+}
 
 export function createAuthRouter(): Hono {
   const router = new Hono();
@@ -66,8 +78,9 @@ export function createAuthRouter(): Hono {
         );
       }
 
-      // Verifikasi kata sandi dari database
-      if (userRow.password_hash !== password) {
+      // Verifikasi kata sandi (PBKDF2; data plaintext lama di-upgrade otomatis)
+      const { ok, needsRehash } = await verifyPassword(password, userRow.password_hash);
+      if (!ok) {
         return c.json(
           {
             status: 'fail',
@@ -76,6 +89,21 @@ export function createAuthRouter(): Hono {
           401
         );
       }
+
+      if (needsRehash) {
+        try {
+          const upgraded = await hashPassword(password);
+          await d1Client.query(
+            `UPDATE users SET password_hash = ?, updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE id = ?`,
+            [upgraded, userRow.id]
+          );
+        } catch {}
+      }
+
+      const token = await signJwt(
+        { sub: userRow.id, role: userRow.role, nama: userRow.nama_lengkap },
+        getJwtSecret(c)
+      );
 
       return c.json({
         status: 'success',
@@ -89,7 +117,7 @@ export function createAuthRouter(): Hono {
             role: userRow.role,
             isActive: Boolean(userRow.is_active),
           },
-          token: `jwt-token-${userRow.id}-${Date.now()}`,
+          token,
         },
       });
     } catch (err: any) {
@@ -151,6 +179,10 @@ export function createAuthRouter(): Hono {
       }
 
       const row = d1Res.results[0];
+      const token = await signJwt(
+        { sub: `usr-parent-${row.id}`, role: 'PENDAFTAR', nama: `${row.nama_ortu || 'Wali Murid'}` },
+        getJwtSecret(c)
+      );
       return c.json({
         status: 'success',
         message: 'Login orang tua berhasil (Database).',
@@ -163,7 +195,7 @@ export function createAuthRouter(): Hono {
             role: 'PENDAFTAR',
             isActive: true,
           },
-          token: `jwt-token-pendaftar-${row.id}-${Date.now()}`,
+          token,
         },
       });
     } catch (err: any) {

@@ -15,6 +15,7 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
     ijazah: formData.ijazahUploaded || false,
     kk: formData.kkUploaded || false,
     akta: formData.aktaUploaded || false,
+    ktpOrtu: formData.ktpOrtuUploaded || false,
     foto: formData.fotoUploaded || false,
     kip: formData.kipUploaded || false,
   });
@@ -25,13 +26,14 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
 
   const isAfirmasi = formData.jalurPendaftaran === 'AFIRMASI';
 
-  const handleSimulateUpload = (key: 'ijazah' | 'kk' | 'akta' | 'foto' | 'kip') => {
+  const handleSimulateUpload = (key: 'ijazah' | 'kk' | 'akta' | 'ktpOrtu' | 'foto' | 'kip') => {
     setUploads((prev) => {
       const next = { ...prev, [key]: !prev[key] };
       updateFormData({
         ijazahUploaded: next.ijazah,
         kkUploaded: next.kk,
         aktaUploaded: next.akta,
+        ktpOrtuUploaded: next.ktpOrtu,
         fotoUploaded: next.foto,
         kipUploaded: next.kip,
       });
@@ -44,8 +46,8 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
     if (isSubmitting) return;
     setErrorMsg(null);
 
-    if (!uploads.ijazah || !uploads.kk || !uploads.akta) {
-      setErrorMsg('Mohon lengkapi ketiga dokumen wajib (Ijazah/SKL, Kartu Keluarga, dan Akta Kelahiran).');
+    if (!uploads.ijazah || !uploads.kk || !uploads.akta || !uploads.ktpOrtu) {
+      setErrorMsg('Mohon lengkapi empat dokumen wajib (Ijazah/SKL, Kartu Keluarga, Akta Kelahiran, dan KTP Orang Tua).');
       return;
     }
 
@@ -189,7 +191,39 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
           </div>
         </div>
 
-        {/* 4. Pas Foto 3x4 */}
+        {/* 4. KTP Orang Tua / Wali */}
+        <div
+          onClick={() => handleSimulateUpload('ktpOrtu')}
+          className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex flex-col justify-between ${
+            uploads.ktpOrtu
+              ? 'border-emerald-500 bg-emerald-50/50'
+              : 'border-slate-300 hover:border-emerald-400 hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-lg ${uploads.ktpOrtu ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">KTP Orang Tua / Wali</h4>
+                <p className="text-[11px] text-slate-500">KTP ayah, ibu, atau wali ( salah satu )</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-700">Wajib</span>
+          </div>
+          <div className="mt-4 flex items-center justify-between text-xs">
+            {uploads.ktpOrtu ? (
+              <span className="text-emerald-700 font-bold flex items-center gap-1">
+                <CheckCircle className="w-4 h-4 text-emerald-600" /> Terunggah (ktp_orang_tua.jpg)
+              </span>
+            ) : (
+              <span className="text-slate-500 font-medium">Klik untuk memilih file...</span>
+            )}
+          </div>
+        </div>
+
+        {/* 5. Pas Foto 3x4 */}
         <div
           onClick={() => handleSimulateUpload('foto')}
           className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex flex-col justify-between ${
@@ -221,7 +255,7 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
           </div>
         </div>
 
-        {/* 5. Kartu KIP / PIP / SKTM (Kondisional untuk Jalur Afirmasi) */}
+        {/* 6. Kartu KIP / PIP / SKTM (Kondisional untuk Jalur Afirmasi) */}
         {isAfirmasi && (
           <div
             onClick={() => handleSimulateUpload('kip')}
@@ -301,7 +335,7 @@ export const Step5UploadBerkas: React.FC<Step5Props> = ({ onSubmitFinal, isSubmi
         />
         <label htmlFor="pernyataanKebenaran" className="text-xs text-slate-700 leading-relaxed cursor-pointer select-none">
           <ShieldCheck className="w-4 h-4 inline-block text-amber-700 mr-1 -mt-0.5" />
-          <strong>Pernyataan Kebenaran Dokumen:</strong> Saya menyatakan bahwa seluruh data yang diisi pada formulir ini adalah benar, sah, dan dapat dipertanggungjawabkan sesuai dokumen resmi ijazah SD, Kartu Keluarga, dan Akta Kelahiran. Jika di kemudian hari ditemukan pemalsuan data, saya bersedia menerima sanksi pembatalan penerimaan.
+          <strong>Pernyataan Kebenaran Dokumen:</strong> Saya menyatakan bahwa seluruh data yang diisi pada formulir ini adalah benar, sah, dan dapat dipertanggungjawabkan sesuai dokumen resmi ijazah SD, Kartu Keluarga, Akta Kelahiran, dan KTP Orang Tua/Wali. Jika di kemudian hari ditemukan pemalsuan data, saya bersedia menerima sanksi pembatalan penerimaan.
         </label>
       </div>
 
