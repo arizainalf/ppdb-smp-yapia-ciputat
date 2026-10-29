@@ -51,6 +51,9 @@ Buat file `apps/backend/wrangler.jsonc`:
   "name": "sipmb-api",
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-01",
+  "vars": {
+    "GOOGLE_CLIENT_ID": "xxxx.apps.googleusercontent.com"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -61,7 +64,7 @@ Buat file `apps/backend/wrangler.jsonc`:
 }
 ```
 
-Ganti `<DATABASE_ID>` dengan Database ID dari dashboard.
+Ganti `<DATABASE_ID>` dengan Database ID dari dashboard. Key di blok `vars` adalah environment variable non-rahasia yang terbaca dari `c.env` saat runtime (lihat bagian Environment Variables di Langkah 5).
 
 ### Langkah 3: Buat Entry Point Workers
 
@@ -97,14 +100,36 @@ Perubahan lain yang wajib:
 | `.env` file | `npx wrangler secret put <NAMA>` |
 | Filesystem / Redis | Tidak tersedia; gunakan KV / Cache API |
 
-### Langkah 5: Set Secret
+### Langkah 5: Set Environment Variables (Workers Tidak Punya `.env`)
+
+Runtime Workers **tidak membaca file `.env`**. Semua nilai dari `.env` lokal harus dipindah ke salah satu dari dua tempat ini:
+
+**a. Non-secret → blok `vars` di `wrangler.jsonc`** (atau dashboard → Settings → Variables and Secrets):
+
+```jsonc
+"vars": {
+  "GOOGLE_CLIENT_ID": "xxxx.apps.googleusercontent.com"
+}
+```
+
+**b. Secret / sensitif → via Wrangler CLI** (disimpan terenkripsi, tidak boleh masuk git):
 
 ```bash
 npx wrangler secret put JWT_SECRET
 # tempel nilai secret, lalu Enter
+
+npx wrangler secret put GOOGLE_CLIENT_ID   # alternatif: boleh juga di "vars"
 ```
 
-Ulangi untuk setiap secret lain yang dipakai (mis. token WhatsApp, dsb). Secret berlaku setelah deploy berikutnya.
+Ulangi untuk setiap secret lain yang dipakai (mis. token payment gateway, dsb). Kode membacanya lewat `c.env.NAMA_VAR` — sudah didukung pola `getJwtSecret()` yang ada.
+
+Ringkasan env project ini:
+
+| Variabel | Jenis | Tempat di Workers |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | Non-secret (Client ID memang publik) | `vars` wrangler.jsonc / `secret put` |
+| `JWT_SECRET` | Secret | `npx wrangler secret put` |
+| `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, `CLOUDFLARE_API_TOKEN` | Tidak diperlukan lagi | Ditinggalkan — akses D1 sudah via native binding `DB` |
 
 ### Langkah 6: Migrasi Skema ke D1 Produksi
 
@@ -156,13 +181,27 @@ curl https://sipmb-api.<subdomain>.workers.dev/health
 
 ### Langkah 1: Build & Deploy
 
+`VITE_*` di-bake **saat build**, bukan saat runtime — jadi env harus sudah ada sebelum `npm run build`:
+
+**Opsi A — pakai `.env` lokal** (`apps/frontend/.env`, sudah ada di repo):
+
 ```bash
 cd apps/frontend
-VITE_API_URL=https://api-ppdb.yapia.sch.id npm run build
+npm run build
 npx wrangler pages deploy dist --project-name=sipmb-frontend
 ```
 
-> `VITE_API_URL` harus di-set **saat build** (baked ke bundle), bukan saat runtime.
+**Opsi B — inline saat build** (tanpa .env):
+
+```bash
+cd apps/frontend
+VITE_API_URL=https://api-ppdb.yapia.sch.id \
+VITE_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com \
+npm run build
+npx wrangler pages deploy dist --project-name=sipmb-frontend
+```
+
+> Deploy via git integration? Set env di dashboard Pages → Settings → **Environment variables** (berlaku sebagai build-time env), lalu trigger redeploy. Mengubah nilai env **selalu** butuh build ulang.
 
 ### Langkah 2: Pasang Custom Domain
 
@@ -204,6 +243,7 @@ npx wrangler whoami                         # cek akun aktif
 npx wrangler dev                            # dev lokal (port 8787)
 npx wrangler deploy                         # deploy ke produksi
 npx wrangler secret put JWT_SECRET          # set secret
+npx wrangler secret put GOOGLE_CLIENT_ID    # atau via "vars" di wrangler.jsonc
 npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/schema.sql --remote   # migrasi skema
 npx wrangler tail                           # log produksi real-time
 npx wrangler deployments list               # riwayat deploy

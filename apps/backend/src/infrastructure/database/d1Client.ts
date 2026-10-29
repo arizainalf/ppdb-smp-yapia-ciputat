@@ -199,6 +199,16 @@ export class D1Client {
       } catch (migrasiErr: any) {
         console.warn(`⚠️ [D1Client] Migrasi 0003 dilewati: ${migrasiErr.message}`);
       }
+
+      // Migrasi 0005: kolom google_sub untuk Sign in with Google (SQLite melarang
+      // UNIQUE pada ALTER TABLE ADD COLUMN, maka dibuat via unique index)
+      try {
+        db.exec('ALTER TABLE users ADD COLUMN google_sub TEXT;');
+        db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub);');
+        console.log('✅ [D1Client] Migrasi 0005 diterapkan: kolom users.google_sub');
+      } catch {
+        // Kolom/index sudah ada — aman diabaikan
+      }
     } catch (bootstrapErr: any) {
       console.error(`⚠️ [D1Client] Gagal auto-bootstrap schema:`, bootstrapErr.message);
     }

@@ -24,7 +24,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onNavigateRegister,
   onLoginSuccess,
 }) => {
-  const { login, loginPendaftar, isAuthenticated, user, logout } = useAuth();
+  const { login, loginPendaftar, loginWithGoogle, isAuthenticated, user, logout } = useAuth();
 
   // Login sukses -> default per role: panitia ke /admin, pendaftar ke /status
   const handleSuccessRedirect = (defaultTarget: 'admin' | 'status') => {
@@ -82,6 +82,39 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     } else {
       setErrorMsg(res.message || 'Login panitia gagal. Silakan periksa kembali akun atau kata sandi Anda.');
     }
+  };
+
+  const handleGoogleCredential = async (credential: string) => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    const res = await loginWithGoogle(credential);
+    setIsLoading(false);
+
+    if (res.success) {
+      handleSuccessRedirect('admin');
+    } else {
+      setErrorMsg(res.message || 'Login dengan Google gagal. Gunakan email yang terdaftar sebagai panitia.');
+    }
+  };
+
+  // Render tombol Google Identity Services (hanya jika Client ID tersedia)
+  const renderGoogleButton = (el: HTMLDivElement | null) => {
+    if (!el || (el as any).rendered) return;
+    const google = (window as any).google;
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+    if (!google?.accounts?.id || !clientId) return;
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (resp: any) => handleGoogleCredential(resp.credential),
+    });
+    google.accounts.id.renderButton(el, {
+      theme: 'outline',
+      size: 'large',
+      shape: 'pill',
+      text: 'signin_with',
+      width: 320,
+    });
+    (el as any).rendered = true;
   };
 
   const handleDemoSelect = async (role: 'KEPSEK' | 'OPERATOR' | 'BENDAHARA' | 'ADMIN' | 'PENDAFTAR') => {
@@ -418,6 +451,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   >
                     <Lock className="w-4 h-4" /> Masuk ke Dasbor Panitia
                   </Button>
+
+                  {/* Divider + Sign in with Google */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-slate-200" />
+                    <span className="text-[11px] text-slate-400 uppercase tracking-wider">atau</span>
+                    <div className="h-px flex-1 bg-slate-200" />
+                  </div>
+                  <div ref={renderGoogleButton} className="flex justify-center" />
                 </form>
               )}
 

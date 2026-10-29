@@ -88,9 +88,12 @@ google_sub TEXT UNIQUE, -- ID unik akun Google yang ter-link (NULL = belum perna
 
 ### Langkah 2: Tambahkan Kolom ke Database Produksi
 
+SQLite melarang constraint `UNIQUE` pada `ALTER TABLE ADD COLUMN`, jadi dibuat via unique index:
+
 ```bash
 # dari root repo
-npx wrangler d1 execute yapia_sipmb_db --command="ALTER TABLE users ADD COLUMN google_sub TEXT UNIQUE;" --remote
+npx wrangler d1 execute yapia_sipmb_db --command="ALTER TABLE users ADD COLUMN google_sub TEXT;" --remote
+npx wrangler d1 execute yapia_sipmb_db --command="CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub);" --remote
 ```
 
 Verifikasi:

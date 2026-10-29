@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL CHECK(role IN ('ADMIN', 'OPERATOR', 'BENDAHARA', 'KEPSEK')),
     is_active INTEGER NOT NULL DEFAULT 1,
+    google_sub TEXT UNIQUE, -- ID unik akun Google (Sign in with Google); NULL = belum ter-link
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

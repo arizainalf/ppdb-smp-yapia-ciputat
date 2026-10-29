@@ -9,6 +9,7 @@ interface AuthContextType {
   can: (permission: Permission) => boolean;
   login: (noHp: string, password: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
   loginPendaftar: (noHp: string, email: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
+  loginWithGoogle: (credential: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
   logout: () => void;
 }
 
@@ -72,6 +73,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async (credential: string): Promise<{ success: boolean; user?: UserDTO; message?: string }> => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.data?.user) {
+        setUser(data.data.user);
+        setToken(data.data.token);
+        localStorage.setItem('yapia_auth_user', JSON.stringify(data.data.user));
+        localStorage.setItem('yapia_auth_token', data.data.token);
+        return { success: true, user: data.data.user };
+      } else {
+        return { success: false, message: data.message || 'Login Google gagal.' };
+      }
+    } catch {
+      return { success: false, message: 'Koneksi ke backend gagal. Pastikan server backend aktif.' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -93,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         can,
         login,
         loginPendaftar,
+        loginWithGoogle,
         logout,
       }}
     >

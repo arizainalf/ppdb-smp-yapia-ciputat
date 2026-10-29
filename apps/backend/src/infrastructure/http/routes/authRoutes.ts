@@ -209,5 +209,121 @@ export function createAuthRouter(): Hono {
     }
   });
 
+  // ============================================================================
+  // 3. LOGIN PANITIA VIA GOOGLE (Sign in with Google)
+  // Email akun Google (terverifikasi) dicocokkan dengan tabel `users`
+  // yang didaftarkan admin. Akun yang tidak terdaftar ditolak.
+  // ============================================================================
+  router.post('/google', async (c) => {
+    try {
+      const { credential } = await c.req.json();
+      if (!credential) {
+        return c.json(
+          { status: 'fail', message: 'Credential Google wajib dikirim.' },
+          400
+        );
+      }
+
+      // Verifikasi ID Token ke Google (server-side)
+      const gRes = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
+      if (!gRes.ok) {
+        return c.json({ status: 'fail', message: 'Token Google tidak valid.' }, 401);
+      }
+      const g: any = await gRes.json();
+
+      // Validasi klaim: token ditujukan untuk aplikasi ini & belum kadaluarsa
+      const clientId =
+        ((c.env as any)?.GOOGLE_CLIENT_ID as string | undefined) || process.env?.GOOGLE_CLIENT_ID;
+      if (!clientId || g.aud !== clientId || Number(g.exp) * 1000 < Date.now()) {
+        return c.json(
+          { status: 'fail', message: 'Token Google tidak ditujukan untuk aplikasi ini.' },
+          401
+        );
+      }
+      if (g.email_verified !== 'true' && g.email_verified !== true) {
+        return c.json({ status: 'fail', message: 'Email Google belum terverifikasi.' }, 401);
+      }
+
+      const email = String(g.email).trim().toLowerCase();
+      const googleSub = String(g.sub);
+
+      // Analisa: cocokkan dengan akun panitia yang didaftarkan admin
+      const d1Res = await d1Client.query<any>(
+        `SELECT id, nama_lengkap, no_hp, email, role, is_active, google_sub
+         FROM users
+         WHERE LOWER(TRIM(email)) = ?
+         LIMIT 1`,
+        [email]
+      );
+
+      if (d1Res.results.length === 0) {
+        return c.json(
+          {
+            status: 'fail',
+            message: 'Email Google Anda tidak terdaftar di database. Silakan hubungi Administrator.',
+          },
+          404
+        );
+      }
+
+      const userRow = d1Res.results[0];
+
+      // Verifikasi status akun aktif/nonaktif
+      if (userRow.is_active !== 1) {
+        return c.json(
+          { status: 'fail', message: 'Akun panitia Anda dinonaktifkan oleh Administrator.' },
+          403
+        );
+      }
+
+      // Satu akun Google hanya boleh ter-link ke satu user
+      if (userRow.google_sub && userRow.google_sub !== googleSub) {
+        return c.json(
+          { status: 'fail', message: 'Akun ini sudah terhubung dengan akun Google lain.' },
+          401
+        );
+      }
+
+      // Login pertama via Google: simpan google_sub (link permanen)
+      if (!userRow.google_sub) {
+        await d1Client.query(
+          `UPDATE users SET google_sub = ?, updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE id = ?`,
+          [googleSub, userRow.id]
+        );
+      }
+
+      const token = await signJwt(
+        { sub: userRow.id, role: userRow.role, nama: userRow.nama_lengkap },
+        getJwtSecret(c)
+      );
+
+      return c.json({
+        status: 'success',
+        message: 'Login panitia via Google berhasil.',
+        data: {
+          user: {
+            id: userRow.id,
+            namaLengkap: userRow.nama_lengkap,
+            noHp: userRow.no_hp,
+            email: userRow.email,
+            role: userRow.role,
+            isActive: Boolean(userRow.is_active),
+          },
+          token,
+        },
+      });
+    } catch (err: any) {
+      return c.json(
+        {
+          status: 'error',
+          message: err.message || 'Terjadi kesalahan sistem saat login dengan Google.',
+        },
+        500
+      );
+    }
+  });
+
   return router;
 }
