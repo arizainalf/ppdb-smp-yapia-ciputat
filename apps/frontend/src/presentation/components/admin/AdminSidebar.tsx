@@ -52,7 +52,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   }> = [
     {
       key: 'overview',
-      label: 'Ringkasan & KPI',
+      label: 'Dashboard',
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />,
       section: 'Utama',
       permission: 'VIEW_DASHBOARD',
@@ -68,14 +68,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       key: 'gelombang',
-      label: 'Master Gelombang',
+      label: 'Gelombang',
       icon: <Calendar className="w-4 h-4 shrink-0" />,
       section: 'Master Data',
       permission: 'MANAGE_GELOMBANG',
     },
     {
       key: 'users',
-      label: 'Akun Panitia (RBAC)',
+      label: 'Users & Panitia',
       icon: <Shield className="w-4 h-4 shrink-0" />,
       section: 'Master Data',
       permission: 'MANAGE_USERS',

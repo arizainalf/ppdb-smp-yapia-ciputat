@@ -12,6 +12,7 @@ export interface GelombangItem {
   kuotaMaksimal: number;
   kuotaTerisi: number;
   biayaPendaftaran: number;
+  potonganBiaya: number;
   isActive: boolean;
 }
 
@@ -41,7 +42,7 @@ export const MasterGelombangManager: React.FC = () => {
   }, []);
 
   const handleEdit = (item: GelombangItem) => {
-    setEditingItem({ ...item });
+    setEditingItem({ ...item, potonganBiaya: item.potonganBiaya || 0 });
     setIsModalOpen(true);
   };
 
@@ -50,12 +51,13 @@ export const MasterGelombangManager: React.FC = () => {
     setEditingItem({
       id: 0,
       namaGelombang: `Gelombang ${nextId}`,
-      tahunAjaran: '2026/2027',
-      tanggalBuka: '2027-04-01',
-      tanggalTutup: '2027-05-31',
+      tahunAjaran: '2027/2028',
+      tanggalBuka: '2027-01-01',
+      tanggalTutup: '2027-04-30',
       kuotaMaksimal: 50,
       kuotaTerisi: 0,
-      biayaPendaftaran: 250000,
+      biayaPendaftaran: 2000000,
+      potonganBiaya: 0,
       isActive: false,
     });
     setIsModalOpen(true);
@@ -164,7 +166,7 @@ export const MasterGelombangManager: React.FC = () => {
         <div>
           <h3 className="text-base font-bold text-slate-800">Master Data Gelombang Pendaftaran</h3>
           <p className="text-xs text-slate-500">
-            Atur periode pendaftaran, kuota daya tampung siswa, dan tarif biaya formulir admisi.
+            Atur periode pendaftaran, kuota daya tampung, tarif biaya normal, dan potongan harga per gelombang.
           </p>
         </div>
         <Button onClick={handleAddNew} className="text-xs py-2">
@@ -227,9 +229,23 @@ export const MasterGelombangManager: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-slate-400 block">Biaya Formulir:</span>
-                  <span className="font-extrabold text-emerald-700 mt-0.5 block">
-                    Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
-                  </span>
+                  {g.potonganBiaya > 0 ? (
+                    <span className="mt-0.5 block">
+                      <span className="text-slate-400 line-through text-[11px] font-semibold">
+                        Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
+                      </span>
+                      <span className="font-extrabold text-emerald-700 block">
+                        Rp {(Math.max(0, g.biayaPendaftaran - g.potonganBiaya)).toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 font-semibold">
+                        Potongan gelombang ini: Rp {g.potonganBiaya.toLocaleString('id-ID')}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="font-extrabold text-emerald-700 mt-0.5 block">
+                      Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <span className="text-slate-400 block">Daya Tampung / Kuota:</span>
@@ -356,18 +372,37 @@ export const MasterGelombangManager: React.FC = () => {
                 />
               </div>
 
-              <InputField
-                label="Biaya Formulir Pendaftaran (IDR)"
-                type="number"
-                required
-                value={editingItem.biayaPendaftaran}
-                onChange={(e) =>
-                  setEditingItem({
-                    ...editingItem,
-                    biayaPendaftaran: Number(e.target.value),
-                  })
-                }
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <InputField
+                  label="Biaya Normal (IDR)"
+                  type="number"
+                  required
+                  value={editingItem.biayaPendaftaran}
+                  onChange={(e) =>
+                    setEditingItem({
+                      ...editingItem,
+                      biayaPendaftaran: Number(e.target.value),
+                    })
+                  }
+                />
+                <InputField
+                  label="Potongan Gelombang (IDR)"
+                  type="number"
+                  required
+                  value={editingItem.potonganBiaya}
+                  onChange={(e) =>
+                    setEditingItem({
+                      ...editingItem,
+                      potonganBiaya: Math.max(0, Number(e.target.value)),
+                    })
+                  }
+                />
+              </div>
+
+              <p className="text-[11px] text-slate-500 -mt-2">
+                Tagihan pendaftar = biaya normal &minus; potongan gelombang &minus; bantuan Pemkot Tangsel
+                (Rp 1.800.000, otomatis untuk domisili Kota Tangerang Selatan).
+              </p>
 
               <div className="pt-2">
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">

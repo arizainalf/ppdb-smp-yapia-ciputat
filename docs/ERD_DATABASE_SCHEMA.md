@@ -51,6 +51,7 @@ erDiagram
         date tanggal_tutup
         int kuota_maksimal
         decimal biaya_pendaftaran
+        decimal potongan_biaya
         boolean is_active
         timestamp created_at
     }
@@ -320,6 +321,7 @@ CREATE TABLE gelombang_pendaftaran (
     tanggal_tutup DATE NOT NULL,
     kuota_maksimal INT NOT NULL DEFAULT 120,
     biaya_pendaftaran DECIMAL(12,2) NOT NULL DEFAULT 150000.00,
+    potongan_biaya DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

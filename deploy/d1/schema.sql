@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 2. TABEL GELOMBANG PENDAFTARAN
+-- biaya_pendaftaran : tarif normal di luar potongan (misal Rp 2.000.000)
+-- potongan_biaya    : potongan harga khusus gelombang (Gel. 1: Rp 800.000, Gel. 2: Rp 200.000)
 CREATE TABLE IF NOT EXISTS gelombang_pendaftaran (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nama_gelombang TEXT NOT NULL,
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS gelombang_pendaftaran (
     tanggal_tutup TEXT NOT NULL,
     kuota_maksimal INTEGER NOT NULL DEFAULT 100,
     biaya_pendaftaran INTEGER NOT NULL DEFAULT 0,
+    potongan_biaya INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

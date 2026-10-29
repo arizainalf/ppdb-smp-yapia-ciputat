@@ -10,6 +10,7 @@ interface RawGelombang {
   tanggal_tutup: string;
   kuota_maksimal: number;
   biaya_pendaftaran: number;
+  potongan_biaya: number;
   is_active: number;
   created_at: string;
 }
@@ -42,6 +43,7 @@ export function createGelombangRouter(): Hono {
             kuotaMaksimal: g.kuota_maksimal,
             kuotaTerisi: terisi,
             biayaPendaftaran: g.biaya_pendaftaran,
+            potonganBiaya: g.potongan_biaya || 0,
             isActive: Boolean(g.is_active),
           };
         })
@@ -67,6 +69,7 @@ export function createGelombangRouter(): Hono {
         tanggalTutup,
         kuotaMaksimal,
         biayaPendaftaran,
+        potonganBiaya,
         isActive,
       } = body;
 
@@ -77,15 +80,16 @@ export function createGelombangRouter(): Hono {
       await d1Client.query(
         `INSERT INTO gelombang_pendaftaran (
           nama_gelombang, tahun_ajaran, tanggal_buka, tanggal_tutup,
-          kuota_maksimal, biaya_pendaftaran, is_active
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          kuota_maksimal, biaya_pendaftaran, potongan_biaya, is_active
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           namaGelombang,
           tahunAjaran,
           tanggalBuka,
           tanggalTutup,
           Number(kuotaMaksimal) || 100,
-          Number(biayaPendaftaran) || 250000,
+          Number(biayaPendaftaran) || 0,
+          Math.max(0, Number(potonganBiaya) || 0),
           isActive ? 1 : 0,
         ]
       );
@@ -108,13 +112,14 @@ export function createGelombangRouter(): Hono {
         tanggalTutup,
         kuotaMaksimal,
         biayaPendaftaran,
+        potonganBiaya,
         isActive,
       } = body;
 
       await d1Client.query(
         `UPDATE gelombang_pendaftaran SET
           nama_gelombang = ?, tahun_ajaran = ?, tanggal_buka = ?, tanggal_tutup = ?,
-          kuota_maksimal = ?, biaya_pendaftaran = ?, is_active = ?
+          kuota_maksimal = ?, biaya_pendaftaran = ?, potongan_biaya = ?, is_active = ?
         WHERE id = ?`,
         [
           namaGelombang,
@@ -122,7 +127,8 @@ export function createGelombangRouter(): Hono {
           tanggalBuka,
           tanggalTutup,
           Number(kuotaMaksimal) || 100,
-          Number(biayaPendaftaran) || 250000,
+          Number(biayaPendaftaran) || 0,
+          Math.max(0, Number(potonganBiaya) || 0),
           isActive ? 1 : 0,
           id,
         ]

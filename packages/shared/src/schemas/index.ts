@@ -16,7 +16,18 @@ export const createCalonSiswaSchema = z.object({
   noHpOrtu: z.string().optional().or(z.literal('')),
   sekolahAsal: z.string().optional().or(z.literal('')),
   nisn: z.string().optional().or(z.literal('')),
+  
+  // Data Alamat & Domisili Terstruktur
   alamat: z.string().optional().or(z.literal('')),
+  rt: z.string().optional().or(z.literal('')),
+  rw: z.string().optional().or(z.literal('')),
+  noRumah: z.string().optional().or(z.literal('')),
+  kelurahan: z.string().optional().or(z.literal('')),
+  kecamatan: z.string().optional().or(z.literal('')),
+  kotaKabupaten: z.string().optional().or(z.literal('')),
+  provinsi: z.string().optional().or(z.literal('')),
+  kodePos: z.string().optional().or(z.literal('')),
+  tinggalBersama: z.string().optional().or(z.literal('')),
 
   // Fitur Tata Kelola: Jalur & KIP/SKTM
   jalurPendaftaran: z.enum(['REGULER', 'AFIRMASI', 'PRESTASI']).default('REGULER'),

@@ -325,13 +325,29 @@ export class CalonSiswaController {
         } catch {}
       }
 
-      // Simpan alamat jika dikirim
-      if (body.alamat) {
+      // Simpan alamat terstruktur (dipakai untuk menentukan kelayakan
+      // Bantuan Biaya Pendidikan Pemkot Tangerang Selatan saat penagihan)
+      if (body.alamat || body.kotaKabupaten) {
         try {
           await d1Client.query(
-            `INSERT INTO alamat_siswa (id, calon_siswa_id, jalan, kelurahan, kecamatan, kota_kabupaten, provinsi)
-             VALUES (?, ?, ?, 'Ciputat', 'Ciputat', 'Tangerang Selatan', 'Banten')`,
-            [crypto.randomUUID(), result.id, body.alamat]
+            `INSERT INTO alamat_siswa (
+               id, calon_siswa_id, jalan, rt, rw, no_rumah,
+               kelurahan, kecamatan, kota_kabupaten, provinsi, kode_pos, tinggal_bersama
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              crypto.randomUUID(),
+              result.id,
+              body.alamat || '-',
+              body.rt || null,
+              body.rw || null,
+              body.noRumah || null,
+              body.kelurahan || 'Ciputat',
+              body.kecamatan || 'Ciputat',
+              body.kotaKabupaten || 'Tangerang Selatan',
+              body.provinsi || 'Banten',
+              body.kodePos || null,
+              body.tinggalBersama || 'Orang Tua',
+            ]
           );
         } catch {}
       }

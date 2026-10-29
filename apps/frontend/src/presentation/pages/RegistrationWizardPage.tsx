@@ -54,6 +54,16 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
         sekolahAsal: formData.namaSekolahAsal || 'SD Negeri',
         nisn: formData.nisn || '',
         alamat: formData.alamatLengkap || '',
+        // Alamat terstruktur: menentukan kelayakan Bantuan Biaya Pendidikan Pemkot Tangsel
+        rt: formData.rt || '',
+        rw: formData.rw || '',
+        noRumah: formData.noRumah || '',
+        kelurahan: formData.kelurahan || '',
+        kecamatan: formData.kecamatan || '',
+        kotaKabupaten: formData.kotaKabupaten || '',
+        provinsi: formData.provinsi || '',
+        kodePos: formData.kodePos || '',
+        tinggalBersama: formData.tinggalBersama || '',
       } as any);
 
       if (res.data?.nomorPendaftaran) {
@@ -147,6 +157,7 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
         <PaymentModal
           nomorPendaftaran={nomorRegistrasi}
           gelombangId={Number(formData.gelombangId) || 1}
+          kotaKabupaten={formData.kotaKabupaten || ''}
           onDone={() => {
             setShowPaymentModal(false);
             setShowBuktiModal(true);

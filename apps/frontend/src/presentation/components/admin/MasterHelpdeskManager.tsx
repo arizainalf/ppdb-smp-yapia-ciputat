@@ -31,8 +31,16 @@ const TEMPLATE_REPLIES = [
     text: 'Waalaikumsalam wr wb / Selamat pagi. Untuk verifikasi berkas fisik, silakan membawa fotokopi KK, Akta Kelahiran, dan Surat Keterangan Siswa Aktif / Raport dari SD asal ke Ruang TU SMP YAPIA Ciputat pada hari kerja (08.00 - 14.00 WIB). Terima kasih.',
   },
   {
-    label: 'Potongan Infak Gelombang 1',
-    text: 'Halo Bpk/Ibu. Betul, calon siswa yang mendaftar dan melunasi formulir di Gelombang 1 berhak mendapatkan potongan infak pembangunan sebesar Rp 500.000. Untuk konfirmasi pembayaran dapat mengirim bukti transfer ke Bendahara PPDB. Terima kasih.',
+    label: 'Potongan Biaya per Gelombang',
+    text: 'Halo Bpk/Ibu. Biaya pendaftaran normal adalah Rp 2.000.000. Pendaftar Gelombang 1 (1 Januari - 30 April) mendapat potongan Rp 800.000 sehingga cukup membayar Rp 1.200.000. Pendaftar Gelombang 2 (1 Mei - 31 Juli) mendapat potongan Rp 200.000 sehingga cukup membayar Rp 1.800.000. Untuk konfirmasi pembayaran dapat mengirim bukti transfer ke Bendahara PPDB. Terima kasih.',
+  },
+  {
+    label: 'Bantuan Pemkot Tangsel',
+    text: 'Halo Bpk/Ibu. Pendaftar yang berdomisili di Kota Tangerang Selatan mendapatkan Bantuan Biaya Pendidikan dari Pemkot Tangsel sebesar Rp 1.800.000 per tahun ajaran. Bantuan tersebut dipotong langsung dari tagihan biaya pendaftaran secara otomatis berdasarkan alamat domisili pada formulir. Terima kasih.',
+  },
+  {
+    label: 'Potongan SPP Yatim & Beasiswa Ranking',
+    text: 'Halo Bpk/Ibu. Untuk informasi, tersedia potongan SPP Rp 50.000/bulan bagi anak yatim serta beasiswa ranking (Peringkat 1: 3 bulan SPP, Peringkat 2: 2 bulan, Peringkat 3: 1 bulan). Kedua keringanan diberlakukan setelah calon siswa resmi menjadi siswa, bukan saat pendaftaran. Terima kasih.',
   },
   {
     label: 'Jalur Afirmasi KIP / PIP',

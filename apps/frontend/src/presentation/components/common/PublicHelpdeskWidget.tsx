@@ -21,13 +21,23 @@ import type { HelpdeskTicketDTO, KategoriHelpdesk } from '@yapia/shared';
 
 const FAQ_LIST = [
   {
-    q: 'Kapan pendaftaran Gelombang 1 dibuka dan ditutup?',
-    a: 'Pendaftaran PPDB Gelombang 1 dibuka mulai 1 Oktober hingga 31 Desember 2026. Peserta yang mendaftar pada Gelombang 1 mendapatkan keuntungan potongan biaya infak pengembangan gedung sebesar Rp 500.000.',
+    q: 'Kapan jadwal dan berapa potongan biaya di tiap gelombang?',
+    a: 'Biaya pendaftaran normal adalah Rp 2.000.000. Gelombang 1 dibuka 1 Januari - 30 April dengan potongan Rp 800.000 (cukup membayar Rp 1.200.000). Gelombang 2 dibuka 1 Mei - 31 Juli dengan potongan Rp 200.000 (cukup membayar Rp 1.800.000).',
     category: 'Jadwal & Gelombang',
   },
   {
-    q: 'Berapa rincian biaya formulir dan infak masuk?',
-    a: 'Biaya pembelian formulir pendaftaran adalah Rp 150.000. Untuk rincian infak bangunan, seragam 5 stel, modul pembelajaran, dan SPP bulan pertama dapat dilihat pada brosur resmi atau ditanyakan langsung ke Bendahara PPDB.',
+    q: 'Apakah ada bantuan biaya dari Pemerintah Kota Tangerang Selatan?',
+    a: 'Ya. Pendaftar yang berdomisili di Kota Tangerang Selatan mendapatkan Bantuan Biaya Pendidikan dari Pemkot Tangsel sebesar Rp 1.800.000 per tahun ajaran. Bantuan ini bukan potongan dari sekolah dan dipotong langsung dari tagihan biaya pendaftaran secara otomatis berdasarkan alamat domisili yang diisi pada formulir.',
+    category: 'Biaya & Infak',
+  },
+  {
+    q: 'Adakah potongan SPP untuk anak yatim?',
+    a: 'Ya, tersedia potongan SPP sebesar Rp 50.000 per bulan untuk anak yatim. Keringanan ini diberlakukan setelah calon siswa resmi menjadi siswa, bukan saat mendaftar. Silakan hubungi Bendahara PPDB untuk proses verifikasi dokumen.',
+    category: 'Biaya & Infak',
+  },
+  {
+    q: 'Bagaimana ketentuan beasiswa berdasarkan ranking?',
+    a: 'Beasiswa diberikan berdasarkan ranking hasil belajar setelah siswa resmi bersekolah: Peringkat 1 mendapat beasiswa 3 bulan SPP, Peringkat 2 mendapat 2 bulan SPP, dan Peringkat 3 mendapat 1 bulan SPP. Beasiswa ini tidak termasuk dalam perhitungan biaya saat pendaftaran.',
     category: 'Biaya & Infak',
   },
   {

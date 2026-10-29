@@ -208,7 +208,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-start gap-3">
+              {/* <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-start gap-3">
                 <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
                   <Shield className="w-4 h-4" />
                 </div>
@@ -218,7 +218,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     Data siswa dan wali murid dilindungi dengan sistem otentikasi ketat dan verifikasi berkas resmi TU.
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-start gap-3">
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">

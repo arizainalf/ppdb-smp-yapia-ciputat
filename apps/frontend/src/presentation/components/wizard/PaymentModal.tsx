@@ -13,16 +13,26 @@ import {
 import { Button } from '../common/Button.js';
 import { apiClient, ApiResponse } from '../../../infrastructure/api/apiClient.js';
 import { paymentService, PaymentInfo, RekeningBank } from '../../../infrastructure/api/paymentService.js';
-import { METODE_PEMBAYARAN, STATUS_PEMBAYARAN } from '@yapia/shared';
+import {
+  METODE_PEMBAYARAN,
+  STATUS_PEMBAYARAN,
+  hitungBiayaPendaftaran,
+  RincianBiayaPendaftaran,
+  POTONGAN_SPP_YATIM,
+  BEASISWA_RANKING,
+} from '@yapia/shared';
 
 interface GelombangItem {
   id: number;
   biayaPendaftaran: number;
+  potonganBiaya?: number;
 }
 
 interface PaymentModalProps {
   nomorPendaftaran: string;
   gelombangId: number;
+  /** Domisili pendaftar: menentukan kelayakan bantuan Pemkot Tangsel */
+  kotaKabupaten?: string;
   onDone: () => void;
 }
 
@@ -33,10 +43,12 @@ const formatRupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
 export const PaymentModal: React.FC<PaymentModalProps> = ({
   nomorPendaftaran,
   gelombangId,
+  kotaKabupaten,
   onDone,
 }) => {
   const [view, setView] = useState<View>('choose');
   const [amount, setAmount] = useState<number>(0);
+  const [rincian, setRincian] = useState<RincianBiayaPendaftaran | null>(null);
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState<string>(''); // 'tripay' | 'manual-create' | 'manual-confirm' | 'check'
   const [error, setError] = useState('');
@@ -46,13 +58,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [rekeningList, setRekeningList] = useState<RekeningBank[]>([]);
   const [selectedRekeningId, setSelectedRekeningId] = useState('');
 
-  // Harga mengikuti biaya_pendaftaran gelombang pendaftar
+  // Harga = biaya normal - potongan gelombang - bantuan Pemkot Tangsel (domisili)
   useEffect(() => {
     apiClient
       .get<GelombangItem[]>('/api/v1/gelombang')
       .then((res: ApiResponse<GelombangItem[]>) => {
         const g = res.data?.find((x) => x.id === gelombangId);
-        if (g) setAmount(g.biayaPendaftaran);
+        if (g) {
+          const r = hitungBiayaPendaftaran(g.biayaPendaftaran, g.potonganBiaya || 0, kotaKabupaten);
+          setRincian(r);
+          setAmount(r.biayaAkhir);
+        }
       })
       .catch(() => {});
     // Daftar rekening bank tujuan transfer manual (master data)
@@ -64,7 +80,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         if (list.length > 0) setSelectedRekeningId(list[0].id);
       })
       .catch(() => {});
-  }, [gelombangId]);
+  }, [gelombangId, kotaKabupaten]);
 
   const handleCreateTripay = async () => {
     setLoading('tripay');
@@ -162,16 +178,62 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Nomor registrasi + nominal */}
-          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
-            <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-800">
-              Nomor Registrasi
-            </p>
-            <p className="text-lg font-black text-emerald-900 font-mono">{nomorPendaftaran}</p>
-            <p className="mt-2 text-2xl font-black text-slate-900">
-              {amount ? formatRupiah(amount) : 'Memuat nominal...'}
-            </p>
-            <p className="text-[11px] text-emerald-700">Sesuai tarif Biaya Formulir gelombang pilihan Anda</p>
+          {/* Nomor registrasi + rincian nominal */}
+          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
+            <div className="text-center">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-800">
+                Nomor Registrasi
+              </p>
+              <p className="text-lg font-black text-emerald-900 font-mono">{nomorPendaftaran}</p>
+            </div>
+
+            {rincian ? (
+              <div className="text-xs space-y-1.5 text-left pt-2 border-t border-emerald-200/60">
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-500">Biaya pendaftaran normal</span>
+                  <span
+                    className={`font-semibold shrink-0 ${
+                      rincian.potonganGelombang > 0 ? 'text-slate-400 line-through' : 'text-slate-800'
+                    }`}
+                  >
+                    {formatRupiah(rincian.biayaNormal)}
+                  </span>
+                </div>
+                {rincian.potonganGelombang > 0 && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-slate-500">Potongan gelombang pendaftaran</span>
+                    <span className="font-semibold text-emerald-700 shrink-0">
+                      &minus; {formatRupiah(rincian.potonganGelombang)}
+                    </span>
+                  </div>
+                )}
+                {rincian.isBantuanTangsel && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-slate-500">Bantuan Biaya Pendidikan Pemkot Tangsel</span>
+                    <span className="font-semibold text-emerald-700 shrink-0">
+                      &minus; {formatRupiah(rincian.bantuanTangsel)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-1.5 border-t border-emerald-200/60">
+                  <span className="font-bold text-slate-700">Total dibayar</span>
+                  <span className="text-xl font-black text-slate-900">
+                    {formatRupiah(info?.jumlahBayar ?? rincian.biayaAkhir)}
+                  </span>
+                </div>
+                {rincian.isBantuanTangsel && (
+                  <p className="text-[11px] leading-relaxed text-emerald-700">
+                    Domisili Anda tercatat di Kota Tangerang Selatan sehingga berhak atas bantuan biaya
+                    pendidikan dari Pemkot Tangsel sebesar Rp 1.800.000/tahun ajaran. Bantuan tersebut
+                    dipotong langsung dari tagihan pendaftaran ini.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2 text-2xl font-black text-slate-900 text-center">
+                {amount ? formatRupiah(amount) : 'Memuat nominal...'}
+              </p>
+            )}
           </div>
 
           {/* PILIH METODE */}
@@ -224,6 +286,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               >
                 Lewati dulu, bayar nanti &rarr;
               </button>
+
+              {/* Info keringanan bagi pendaftar (berlaku setelah resmi menjadi siswa) */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Informasi Keringanan Biaya
+                </p>
+                <ul className="text-[11px] text-slate-500 list-disc pl-4 space-y-1 leading-relaxed">
+                  <li>
+                    {POTONGAN_SPP_YATIM.LABEL}: potongan SPP {formatRupiah(POTONGAN_SPP_YATIM.NOMINAL_PER_BULAN)}/bulan.
+                  </li>
+                  <li>
+                    Beasiswa ranking:{' '}
+                    {BEASISWA_RANKING.map((b) => `Peringkat ${b.peringkat} = ${b.bulanSpp} bulan SPP`).join(', ')}.
+                  </li>
+                  <li>Kedua keringanan di atas diberlakukan setelah calon siswa resmi menjadi siswa, bukan saat mendaftar.</li>
+                </ul>
+              </div>
             </div>
           )}
 

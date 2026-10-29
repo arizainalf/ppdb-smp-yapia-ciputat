@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Context } from 'hono';
 import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
-import { STATUS_PEMBAYARAN, METODE_PEMBAYARAN } from '@yapia/shared';
+import { STATUS_PEMBAYARAN, METODE_PEMBAYARAN, hitungBiayaPendaftaran, RincianBiayaPendaftaran } from '@yapia/shared';
 import { requireAuth, requirePermission } from '../middlewares/authMiddleware.js';
 
 // =====================================================================
@@ -59,16 +59,19 @@ interface CalonSiswaRow {
   noHpOrtu: string | null;
   gelombangId: number;
   namaGelombang: string;
-  jumlahBayar: number;
+  /** Rincian biaya: normal - potongan gelombang - bantuan Pemkot Tangsel (domisili) */
+  rincianBiaya: RincianBiayaPendaftaran;
 }
 
 async function findPendaftar(nomorPendaftaran: string): Promise<CalonSiswaRow | null> {
   const res = await d1Client.query<any>(
     `SELECT cs.id, cs.nomor_pendaftaran as nomorPendaftaran, cs.nama_lengkap as namaLengkap,
             cs.email, cs.no_hp_siswa as noHpSiswa, cs.gelombang_id as gelombangId,
-            g.nama_gelombang as namaGelombang, g.biaya_pendaftaran as jumlahBayar
+            g.nama_gelombang as namaGelombang, g.biaya_pendaftaran as biayaNormal,
+            g.potongan_biaya as potonganGelombang, al.kota_kabupaten as kotaKabupaten
      FROM calon_siswa cs
      LEFT JOIN gelombang_pendaftaran g ON g.id = cs.gelombang_id
+     LEFT JOIN alamat_siswa al ON al.calon_siswa_id = cs.id
      WHERE UPPER(cs.nomor_pendaftaran) = UPPER(?)
      LIMIT 1`,
     [nomorPendaftaran]
@@ -84,7 +87,12 @@ async function findPendaftar(nomorPendaftaran: string): Promise<CalonSiswaRow | 
     );
     noHpOrtu = otw.results[0]?.no_hp || null;
   } catch {}
-  return { ...r, noHpOrtu };
+  const rincianBiaya = hitungBiayaPendaftaran(
+    Number(r.biayaNormal) || 0,
+    Number(r.potonganGelombang) || 0,
+    r.kotaKabupaten || undefined
+  );
+  return { ...r, noHpOrtu, rincianBiaya };
 }
 
 interface PembayaranRow {
@@ -150,7 +158,8 @@ export function createPembayaranRouter(): Hono {
 
   // ---------------------------------------------------------------
   // 1. BUAT TRANSAKSI PEMBAYARAN (TRIPAY / MANUAL)
-  //    Harga otomatis mengikuti biaya_pendaftaran gelombang pendaftar.
+  //    Tagihan = biaya gelombang - potongan gelombang - bantuan
+  //    Pemkot Tangsel (otomatis bagi domisili Kota Tangerang Selatan).
   // ---------------------------------------------------------------
   router.post('/create', async (c) => {
     try {
@@ -170,7 +179,10 @@ export function createPembayaranRouter(): Hono {
 
       // Sudah lunas — jangan buat transaksi baru
       if (existing?.status_pembayaran === STATUS_PEMBAYARAN.PAID) {
-        return c.json(JSendPresenter.success(toPaymentInfo(existing, env.bank), 'Pembayaran sudah lunas'), 200);
+        return c.json(
+          JSendPresenter.success({ ...toPaymentInfo(existing, env.bank), rincianBiaya: pendaftar.rincianBiaya }, 'Pembayaran sudah lunas'),
+          200
+        );
       }
 
       // Invoice Tripay aktif — pakai ulang
@@ -180,11 +192,15 @@ export function createPembayaranRouter(): Hono {
         existing.status_pembayaran === STATUS_PEMBAYARAN.PENDING &&
         existing.checkout_url
       ) {
-        return c.json(JSendPresenter.success(toPaymentInfo(existing, env.bank), 'Invoice Tripay sudah tersedia'), 200);
+        return c.json(
+          JSendPresenter.success({ ...toPaymentInfo(existing, env.bank), rincianBiaya: pendaftar.rincianBiaya }, 'Invoice Tripay sudah tersedia'),
+          200
+        );
       }
 
       const kodeTransaksi = `PAY-${pendaftar.nomorPendaftaran}`;
-      const jumlah = Number(pendaftar.jumlahBayar) || 0;
+      // Tagihan akhir = biaya normal - potongan gelombang - bantuan Pemkot Tangsel (jika domisili memenuhi syarat)
+      const jumlah = pendaftar.rincianBiaya.biayaAkhir;
 
       if (metode === METODE_PEMBAYARAN.TRIPAY) {
         if (!env.merchantCode || !env.apiKey || !env.privateKey) {
@@ -272,7 +288,10 @@ export function createPembayaranRouter(): Hono {
         }
 
         return c.json(
-          JSendPresenter.success({ ...toPaymentInfo(row, env.bank), tripayReference: d.reference }, 'Invoice Tripay berhasil dibuat'),
+          JSendPresenter.success(
+            { ...toPaymentInfo(row, env.bank), tripayReference: d.reference, rincianBiaya: pendaftar.rincianBiaya },
+            'Invoice Tripay berhasil dibuat'
+          ),
           201
         );
       }
@@ -314,7 +333,10 @@ export function createPembayaranRouter(): Hono {
       }
 
       return c.json(
-        JSendPresenter.success(toPaymentInfo(row, bankTujuan), 'Instruksi transfer manual berhasil dibuat'),
+        JSendPresenter.success(
+          { ...toPaymentInfo(row, bankTujuan), rincianBiaya: pendaftar.rincianBiaya },
+          'Instruksi transfer manual berhasil dibuat'
+        ),
         201
       );
     } catch (err: any) {
@@ -335,7 +357,10 @@ export function createPembayaranRouter(): Hono {
       if (!existing) {
         return c.json(JSendPresenter.fail('Belum ada transaksi pembayaran'), 404);
       }
-      return c.json(JSendPresenter.success(toPaymentInfo(existing, getPaymentEnv(c).bank)), 200);
+      return c.json(
+        JSendPresenter.success({ ...toPaymentInfo(existing, getPaymentEnv(c).bank), rincianBiaya: pendaftar.rincianBiaya }),
+        200
+      );
     } catch (err: any) {
       return c.json(JSendPresenter.error(err.message || 'Gagal mengambil status pembayaran'), 500);
     }

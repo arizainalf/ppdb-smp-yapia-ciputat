@@ -13,9 +13,14 @@ INSERT OR REPLACE INTO users (id, nama_lengkap, no_hp, email, password_hash, rol
 ('e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55', 'Bendahara PPDB SMP YAPIA', '081200000005', 'bendahara@yapia.sch.id', 'pbkdf2$100000$abababababababababababababababab$02382a6b8320c858a6a4e92f62deb23710eeb151395c22de97fe2f1381ca4037', 'BENDAHARA', 1);
 
 -- 2. GELOMBANG PENDAFTARAN AKTIF
-INSERT OR REPLACE INTO gelombang_pendaftaran (id, nama_gelombang, tahun_ajaran, tanggal_buka, tanggal_tutup, kuota_maksimal, biaya_pendaftaran, is_active) VALUES
-(1, 'Gelombang 1 (Jalur Reguler & Afirmasi)', '2026/2027', '2026-10-01', '2026-12-31', 120, 250000, 1),
-(2, 'Gelombang 2 (Reguler Lanjutan)', '2026/2027', '2027-01-02', '2027-03-31', 60, 250000, 0);
+-- Biaya daftar normal Rp 2.000.000. Potongan diatur per gelombang:
+--   Gelombang 1 (1 Jan - 30 Apr) : potongan Rp 800.000 -> bayar Rp 1.200.000
+--   Gelombang 2 (1 Mei - 31 Jul) : potongan Rp 200.000 -> bayar Rp 1.800.000
+-- Pendaftar domisili Kota Tangerang Selatan mendapat Bantuan Biaya Pendidikan
+-- dari Pemkot Tangsel Rp 1.800.000/tahun yang dipotong langsung dari tagihan.
+INSERT OR REPLACE INTO gelombang_pendaftaran (id, nama_gelombang, tahun_ajaran, tanggal_buka, tanggal_tutup, kuota_maksimal, biaya_pendaftaran, potongan_biaya, is_active) VALUES
+(1, 'Gelombang 1 (1 Januari - 30 April)', '2027/2028', '2027-01-01', '2027-04-30', 120, 2000000, 800000, 1),
+(2, 'Gelombang 2 (1 Mei - 31 Juli)', '2027/2028', '2027-05-01', '2027-07-31', 60, 2000000, 200000, 0);
 
 -- CATATAN: Data calon siswa TIDAK di-seed. Seluruh data pendaftar harus berasal
 -- dari formulir pendaftaran asli agar hasil pencarian status selalu data nyata.

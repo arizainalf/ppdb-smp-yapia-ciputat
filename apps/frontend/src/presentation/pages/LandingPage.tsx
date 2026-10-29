@@ -87,6 +87,7 @@ interface GelombangItem {
   kuotaMaksimal: number;
   kuotaTerisi: number;
   biayaPendaftaran: number;
+  potonganBiaya?: number;
   isActive: boolean;
 }
 
@@ -103,24 +104,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [gelombangList, setGelombangList] = useState<GelombangItem[]>([
     {
       id: 1,
-      namaGelombang: 'Gelombang 1 (Reguler & Afirmasi)',
-      tahunAjaran: '2026/2027',
-      tanggalBuka: '2026-10-01',
-      tanggalTutup: '2026-12-31',
+      namaGelombang: 'Gelombang 1 (1 Januari - 30 April)',
+      tahunAjaran: '2027/2028',
+      tanggalBuka: '2027-01-01',
+      tanggalTutup: '2027-04-30',
       kuotaMaksimal: 120,
       kuotaTerisi: 7,
-      biayaPendaftaran: 250000,
+      biayaPendaftaran: 2000000,
+      potonganBiaya: 800000,
       isActive: true,
     },
     {
       id: 2,
-      namaGelombang: 'Gelombang 2 (Reguler Lanjutan)',
-      tahunAjaran: '2026/2027',
-      tanggalBuka: '2027-01-02',
-      tanggalTutup: '2027-03-31',
+      namaGelombang: 'Gelombang 2 (1 Mei - 31 Juli)',
+      tahunAjaran: '2027/2028',
+      tanggalBuka: '2027-05-01',
+      tanggalTutup: '2027-07-31',
       kuotaMaksimal: 60,
       kuotaTerisi: 0,
-      biayaPendaftaran: 250000,
+      biayaPendaftaran: 2000000,
+      potonganBiaya: 200000,
       isActive: false,
     },
   ]);
@@ -271,11 +274,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         style={{ width: `${persenTerisi}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center pt-1 border-t border-emerald-200/40">
-                      <span className="text-slate-600">Biaya Formulir:</span>
-                      <span className="font-extrabold text-slate-900">
-                        Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
-                      </span>
+                    <div className="pt-1 border-t border-emerald-200/40 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Biaya Pendaftaran:</span>
+                        {(g.potonganBiaya || 0) > 0 ? (
+                          <span className="text-right">
+                            <span className="block text-[11px] text-slate-400 line-through">
+                              Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
+                            </span>
+                            <span className="font-extrabold text-slate-900 block">
+                              Rp {(Math.max(0, g.biayaPendaftaran - (g.potonganBiaya || 0))).toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-[10px] font-semibold text-emerald-700">
+                              Hemat Rp {(g.potonganBiaya || 0).toLocaleString('id-ID')}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="font-extrabold text-slate-900">
+                            Rp {g.biayaPendaftaran.toLocaleString('id-ID')}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-emerald-700 leading-relaxed">
+                        Domisili Kota Tangerang Selatan mendapat bantuan biaya pendidikan dari Pemkot
+                        sebesar Rp 1.800.000/tahun yang dipotong langsung dari tagihan.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -292,6 +315,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             );
           })}
+        </div>
+
+        {/* Informasi keringanan biaya bagi calon pendaftar */}
+        <div className="mt-8 p-6 rounded-2xl bg-white border-2 border-emerald-100 shadow-2xs">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
+              Bantuan & Keringanan Biaya Pendidikan
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">
+              <p className="font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                Bantuan Pemkot Tangsel
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                Bantuan biaya pendidikan dari Pemerintah Kota Tangerang Selatan sebesar
+                Rp 1.800.000/tahun ajaran bagi pendaftar berdomisili di Tangsel. Dipotong langsung
+                dari tagihan biaya pendaftaran.
+              </p>
+            </div>
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">
+              <p className="font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                Potongan SPP Anak Yatim
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                Potongan SPP sebesar Rp 50.000/bulan untuk anak yatim. Diberlakukan setelah calon
+                siswa resmi menjadi siswa, bukan saat mendaftar.
+              </p>
+            </div>
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">
+              <p className="font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                Beasiswa Ranking
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                Beasiswa berdasarkan ranking hasil belajar: Peringkat 1 mendapat 3 bulan SPP,
+                Peringkat 2 mendapat 2 bulan SPP, dan Peringkat 3 mendapat 1 bulan SPP.
+                Berlaku setelah resmi menjadi siswa.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
