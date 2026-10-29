@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   RegistrationWizardProvider,
   useRegistrationWizardContext,
@@ -11,6 +11,7 @@ import { Step5UploadBerkas } from '../components/wizard/Step5UploadBerkas.js';
 import { PaymentModal } from '../components/wizard/PaymentModal.js';
 import { BuktiPendaftaranModal } from '../components/wizard/BuktiPendaftaranModal.js';
 import { calonSiswaService } from '../../infrastructure/api/calonSiswaService.js';
+import { Button } from '../components/common/Button.js';
 import { ArrowLeft } from 'lucide-react';
 
 interface WizardPageProps {
@@ -23,6 +24,39 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
   const [showBuktiModal, setShowBuktiModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [nomorRegistrasi, setNomorRegistrasi] = useState('REG-2026-G1-0001');
+  const [pendaftaranAktif, setPendaftaranAktif] = useState<boolean | null>(null); // null = memuat
+  const [infoGelombang, setInfoGelombang] = useState<{ nama: string; tahunAjaran: string } | null>(null);
+  const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}`;
+
+  // Gate pendaftaran + pilih gelombang aktif secara dinamis
+  useEffect(() => {
+    fetch(`${apiUrl}/api/v1/pengaturan`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.status === 'success' && j.data) setPendaftaranAktif(Boolean(j.data.pendaftaranAktif));
+        else setPendaftaranAktif(true);
+      })
+      .catch(() => setPendaftaranAktif(true));
+
+    fetch(`${apiUrl}/api/v1/gelombang`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.status === 'success' && Array.isArray(j.data)) {
+          const today = new Date().toISOString().slice(0, 10);
+          const aktif = j.data.find(
+            (g: any) =>
+              g.isActive &&
+              (!g.tanggalBuka || today >= g.tanggalBuka) &&
+              (!g.tanggalTutup || today <= g.tanggalTutup)
+          );
+          if (aktif) {
+            setInfoGelombang({ nama: aktif.namaGelombang, tahunAjaran: aktif.tahunAjaran || '' });
+            updateFormData({ gelombangId: aktif.id });
+          }
+        }
+      })
+      .catch(() => {});
+  }, [apiUrl, updateFormData]);
 
   const stepTitles = [
     'Data Calon Siswa',
@@ -94,16 +128,35 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
       {/* Header */}
       <div className="text-center mb-8">
         <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-          Formulir PPDB Online 2026/2027
+          Formulir PPDB Online {infoGelombang?.tahunAjaran || '2026/2027'}
         </span>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-2">
           Penerimaan Murid Baru
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          SMP YAPIA Ciputat • Gelombang 1 (Tahun Ajaran 2026/2027)
+          SMP YAPIA Ciputat • {infoGelombang ? `${infoGelombang.nama} (Tahun Ajaran ${infoGelombang.tahunAjaran || '-'})` : 'Memuat gelombang aktif...'}
         </p>
       </div>
 
+      {/* Gate: pendaftaran ditutup oleh panitia */}
+      {pendaftaranAktif === false ? (
+        <div className="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-2xl font-bold">
+            ✕
+          </div>
+          <h2 className="text-lg font-black text-slate-900">Pendaftaran Sedang Ditutup</h2>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+            Panitia PPDB sedang menutup pendaftaran online. Silakan pantau beranda untuk pengumuman pembukaan
+            gelombang berikutnya, atau hubungi panitia melalui helpdesk.
+          </p>
+          {onBackToHome && (
+            <Button onClick={onBackToHome} variant="outline" className="mx-auto px-6">
+              Kembali ke Beranda
+            </Button>
+          )}
+        </div>
+      ) : (
+      <>
       {/* Step Indicator Progress Bar */}
       <div className="mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
         <div className="flex justify-between items-center relative">
@@ -151,6 +204,8 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
           />
         )}
       </div>
+      </>
+      )}
 
       {/* Payment Modal (Tripay / Transfer Manual) */}
       {showPaymentModal && (

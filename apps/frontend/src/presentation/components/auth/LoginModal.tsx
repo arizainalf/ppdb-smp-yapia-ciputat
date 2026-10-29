@@ -217,9 +217,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                   onChange={(e) => setPasswordPanitia(e.target.value)}
                   placeholder="Masukkan kata sandi..."
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
+                {/* <span className="text-[10px] text-slate-400 mt-1 block">
                   Password demo default: <code>password123</code>
-                </span>
+                </span> */}
               </div>
 
               <Button

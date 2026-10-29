@@ -96,6 +96,21 @@ export interface ApiResponse<T> {
   errors?: unknown[];
 }
 
+export interface LandingMetricItem {
+  title: string;
+  subtitle: string;
+}
+
+export interface LandingSyaratItem {
+  title: string;
+  desc: string;
+}
+
+export interface LandingStepItem {
+  title: string;
+  desc: string;
+}
+
 export interface LandingContentDTO {
   hero: {
     badgeText: string;
@@ -105,38 +120,17 @@ export interface LandingContentDTO {
     heroDaftarBtn: string;
     heroCekStatusBtn: string;
   };
-  metrics: {
-    metric1Title: string;
-    metric1Subtitle: string;
-    metric2Title: string;
-    metric2Subtitle: string;
-    metric3Title: string;
-    metric3Subtitle: string;
-    metric4Title: string;
-    metric4Subtitle: string;
-  };
+  metrics: LandingMetricItem[];
   syarat: {
     syaratBadge: string;
     syaratTitle: string;
     syaratSubtitle: string;
-    syarat1Title: string;
-    syarat1Desc: string;
-    syarat2Title: string;
-    syarat2Desc: string;
-    syarat3Title: string;
-    syarat3Desc: string;
+    items: LandingSyaratItem[];
   };
   panduan: {
     panduanBadge: string;
     panduanTitle: string;
-    step1Title: string;
-    step1Desc: string;
-    step2Title: string;
-    step2Desc: string;
-    step3Title: string;
-    step3Desc: string;
-    step4Title: string;
-    step4Desc: string;
+    steps: LandingStepItem[];
   };
   cta: {
     ctaBadge: string;

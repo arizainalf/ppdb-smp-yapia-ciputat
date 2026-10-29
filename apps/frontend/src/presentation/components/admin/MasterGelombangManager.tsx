@@ -257,11 +257,11 @@ export const MasterGelombangManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-slate-300 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-slate-700 block">
+                  {/* <span className="text-xs font-bold text-slate-700 block">
                     Sakelar Gelombang (Master Switch)
-                  </span>
+                  </span> */}
                   <span className="text-[11px] text-slate-500">
                     {statusInfo.description}
                   </span>

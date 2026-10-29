@@ -11,7 +11,8 @@ import {
   ListOrdered,
   Megaphone,
   Check,
-  Building,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../common/Button.js';
 import { InputField } from '../common/InputField.js';
@@ -27,38 +28,52 @@ const DEFAULT_CONTENT: LandingContentDTO = {
     heroDaftarBtn: 'Daftar Sekarang',
     heroCekStatusBtn: 'Cek Status Pendaftaran',
   },
-  metrics: {
-    metric1Title: 'Akreditasi A',
-    metric1Subtitle: 'Kemendikbudristek',
-    metric2Title: '100% Online',
-    metric2Subtitle: 'Tanpa Antre di Sekolah',
-    metric3Title: '24 Jam',
-    metric3Subtitle: 'Akses Formulir Kapanpun',
-    metric4Title: 'WhatsApp Notif',
-    metric4Subtitle: 'Update Status Realtime',
-  },
+  metrics: [
+    { title: 'Akreditasi A', subtitle: 'Kemendikbudristek' },
+    { title: '100% Online', subtitle: 'Tanpa Antre di Sekolah' },
+    { title: '24 Jam', subtitle: 'Akses Formulir Kapanpun' },
+    { title: 'WhatsApp Notif', subtitle: 'Update Status Realtime' },
+  ],
   syarat: {
     syaratBadge: 'Persyaratan PPDB',
     syaratTitle: 'Dokumen Persyaratan yang Perlu Disiapkan',
     syaratSubtitle: 'Pastikan Anda telah menyiapkan foto atau scan berkas dokumen berikut sebelum mengisi formulir:',
-    syarat1Title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
-    syarat1Desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
-    syarat2Title: 'Kartu Keluarga (KK)',
-    syarat2Desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
-    syarat3Title: 'Akta Kelahiran Calon Siswa',
-    syarat3Desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+    items: [
+      {
+        title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
+        desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
+      },
+      {
+        title: 'Kartu Keluarga (KK)',
+        desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
+      },
+      {
+        title: 'Akta Kelahiran Calon Siswa',
+        desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+      },
+    ],
   },
   panduan: {
     panduanBadge: 'Panduan Pendaftaran',
     panduanTitle: '4 Langkah Mudah Pendaftaran Online',
-    step1Title: 'Isi Biodata Lengkap',
-    step1Desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
-    step2Title: 'Unggah Scan Dokumen',
-    step2Desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
-    step3Title: 'Verifikasi Panitia',
-    step3Desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
-    step4Title: 'Cetak Bukti Pendaftaran',
-    step4Desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+    steps: [
+      {
+        title: 'Isi Biodata Lengkap',
+        desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
+      },
+      {
+        title: 'Unggah Scan Dokumen',
+        desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
+      },
+      {
+        title: 'Verifikasi Panitia',
+        desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
+      },
+      {
+        title: 'Cetak Bukti Pendaftaran',
+        desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+      },
+    ],
   },
   cta: {
     ctaBadge: 'PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS',
@@ -85,16 +100,45 @@ const DEFAULT_CONTENT: LandingContentDTO = {
   },
 };
 
-type TabKey = 'hero' | 'metrics' | 'syarat' | 'panduan' | 'cta' | 'kontak';
+type TabKey = 'hero' | 'metrics' | 'syarat' | 'panduan' | 'cta';
 
 export const MasterLandingContentManager: React.FC = () => {
   const [content, setContent] = useState<LandingContentDTO>(DEFAULT_CONTENT);
   const [activeTab, setActiveTab] = useState<TabKey>('hero');
+  const previewLabels: Record<TabKey, string> = {
+    hero: 'Hero Beranda',
+    metrics: 'Poin Keunggulan',
+    syarat: 'Syarat Dokumen',
+    panduan: 'Panduan 4 Langkah',
+    cta: 'Banner CTA Bawah',
+  };
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showLivePreview, setShowLivePreview] = useState(true);
+  // Kolom dinamis mengikuti jumlah item: <=4 = 1 baris penuh; >=5 = 3 kolom (3+2, 3+3, ...)
+  const metricsCols =
+    content.metrics.length <= 1 ? 'sm:grid-cols-1'
+    : content.metrics.length === 2 ? 'sm:grid-cols-2'
+    : content.metrics.length === 4 ? 'sm:grid-cols-4'
+    : 'sm:grid-cols-3';
+  const syaratCols =
+    content.syarat.items.length <= 1 ? 'sm:grid-cols-1'
+    : content.syarat.items.length === 2 ? 'sm:grid-cols-2'
+    : content.syarat.items.length === 4 ? 'sm:grid-cols-4'
+    : 'sm:grid-cols-3';
+  const panduanCols =
+    content.panduan.steps.length <= 1 ? 'sm:grid-cols-1'
+    : content.panduan.steps.length === 2 ? 'sm:grid-cols-2'
+    : content.panduan.steps.length === 4 ? 'sm:grid-cols-4'
+    : 'sm:grid-cols-3';
+  // Column spanning: baris terakhir menyebar rata kiri-kanan saat >=5 item
+  const edgeSpan = (i: number, n: number) => {
+    const lastStart = n - (n % 3 === 0 ? 3 : n % 3);
+    if (i < lastStart) return 'sm:col-span-2';
+    return n - lastStart === 1 ? 'sm:col-span-6' : 'sm:col-span-3';
+  };
 
   // Fetch current content from database
   const loadContent = async () => {
@@ -188,26 +232,76 @@ export const MasterLandingContentManager: React.FC = () => {
     }));
   };
 
-  const updateMetrics = (field: keyof LandingContentDTO['metrics'], value: string) => {
+  const updateMetricsItem = (index: number, field: 'title' | 'subtitle', value: string) => {
     setContent((prev) => ({
       ...prev,
-      metrics: { ...prev.metrics, [field]: value },
+      metrics: prev.metrics.map((m, i) => (i === index ? { ...m, [field]: value } : m)),
     }));
   };
 
-  const updateSyarat = (field: keyof LandingContentDTO['syarat'], value: string) => {
+  const addMetricsItem = () =>
+    setContent((prev) => ({ ...prev, metrics: [...prev.metrics, { title: '', subtitle: '' }] }));
+
+  const removeMetricsItem = (index: number) =>
+    setContent((prev) => ({ ...prev, metrics: prev.metrics.filter((_, i) => i !== index) }));
+
+  const updateSyarat = (field: keyof Omit<LandingContentDTO['syarat'], 'items'>, value: string) => {
     setContent((prev) => ({
       ...prev,
       syarat: { ...prev.syarat, [field]: value },
     }));
   };
 
-  const updatePanduan = (field: keyof LandingContentDTO['panduan'], value: string) => {
+  const updatePanduan = (field: keyof Omit<LandingContentDTO['panduan'], 'steps'>, value: string) => {
     setContent((prev) => ({
       ...prev,
       panduan: { ...prev.panduan, [field]: value },
     }));
   };
+
+  const updateSyaratItem = (index: number, field: 'title' | 'desc', value: string) => {
+    setContent((prev) => ({
+      ...prev,
+      syarat: {
+        ...prev.syarat,
+        items: prev.syarat.items.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
+      },
+    }));
+  };
+
+  const addSyaratItem = () =>
+    setContent((prev) => ({
+      ...prev,
+      syarat: { ...prev.syarat, items: [...prev.syarat.items, { title: '', desc: '' }] },
+    }));
+
+  const removeSyaratItem = (index: number) =>
+    setContent((prev) => ({
+      ...prev,
+      syarat: { ...prev.syarat, items: prev.syarat.items.filter((_, i) => i !== index) },
+    }));
+
+  const updatePanduanStep = (index: number, field: 'title' | 'desc', value: string) => {
+    setContent((prev) => ({
+      ...prev,
+      panduan: {
+        ...prev.panduan,
+        steps: prev.panduan.steps.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
+      },
+    }));
+  };
+
+  const addPanduanStep = () =>
+    setContent((prev) => ({
+      ...prev,
+      panduan: { ...prev.panduan, steps: [...prev.panduan.steps, { title: '', desc: '' }] },
+    }));
+
+  const removePanduanStep = (index: number) =>
+    setContent((prev) => ({
+      ...prev,
+      panduan: { ...prev.panduan, steps: prev.panduan.steps.filter((_, i) => i !== index) },
+    }));
 
   const updateCta = (field: keyof LandingContentDTO['cta'], value: string) => {
     setContent((prev) => ({
@@ -216,12 +310,6 @@ export const MasterLandingContentManager: React.FC = () => {
     }));
   };
 
-  const updateKontak = (field: keyof LandingContentDTO['kontak'], value: string) => {
-    setContent((prev) => ({
-      ...prev,
-      kontak: { ...prev.kontak, [field]: value },
-    }));
-  };
 
   if (isLoading) {
     return (
@@ -307,13 +395,13 @@ export const MasterLandingContentManager: React.FC = () => {
         </div>
       )}
 
-      {/* Realtime Live Preview Strip */}
+      {/* Realtime Live Preview Strip — mengikuti tab aktif */}
       <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md">
         <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Pratinjau Langsung (Live Preview Hero)
+              Pratinjau Langsung — {previewLabels[activeTab]}
             </span>
           </div>
           <button
@@ -325,51 +413,141 @@ export const MasterLandingContentManager: React.FC = () => {
         </div>
 
         {showLivePreview && (
-          <div className="bg-gradient-to-b from-emerald-950 via-emerald-900 to-slate-900 p-6 rounded-xl border border-emerald-700/40 text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {content.hero.badgeText}
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-black text-white max-w-xl mx-auto leading-snug">
-              {content.hero.heroTitle}
-            </h3>
-
-            <p className="text-xs text-emerald-100/80 max-w-lg mx-auto font-normal">
-              {content.hero.heroSubtitle}
-            </p>
-
-            <div className="flex justify-center gap-2 pt-2">
-              <span className="px-4 py-2 bg-emerald-500 text-slate-950 font-black rounded-lg text-xs shadow-md">
-                {content.hero.heroDaftarBtn} &rarr;
-              </span>
-              <span className="px-4 py-2 bg-emerald-400 text-slate-800 font-bold rounded-lg text-xs border border-emerald-400">
-                {content.hero.heroCekStatusBtn}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-emerald-800/60 max-w-2xl mx-auto text-left">
-              <div className="p-2 bg-emerald-900/40 rounded-lg border border-emerald-700/30">
-                <span className="text-emerald-400 font-bold text-xs">{content.metrics.metric1Title}</span>
-                <p className="text-[10px] text-emerald-200/70">{content.metrics.metric1Subtitle}</p>
+          <div className="animate-in fade-in duration-200">
+            {/* ===== PREVIEW: HERO ===== */}
+            {activeTab === 'hero' && (
+              <div className="bg-gradient-to-b from-emerald-950 via-emerald-900 to-slate-900 p-6 rounded-xl border border-emerald-700/40 text-center space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  {content.hero.badgeText}
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white max-w-xl mx-auto leading-snug">
+                  {content.hero.heroTitle}
+                </h3>
+                <p className="text-xs text-emerald-100/80 max-w-lg mx-auto font-normal">
+                  {content.hero.heroSubtitle}
+                </p>
+                <div className="flex justify-center gap-2 pt-2">
+                  <span className="px-4 py-2 bg-emerald-500 text-slate-950 font-black rounded-lg text-xs shadow-md">
+                    {content.hero.heroDaftarBtn} &rarr;
+                  </span>
+                  <span className="px-4 py-2 bg-emerald-400 text-slate-800 font-bold rounded-lg text-xs border border-emerald-400">
+                    {content.hero.heroCekStatusBtn}
+                  </span>
+                </div>
               </div>
-              <div className="p-2 bg-emerald-900/40 rounded-lg border border-emerald-700/30">
-                <span className="text-emerald-400 font-bold text-xs">{content.metrics.metric2Title}</span>
-                <p className="text-[10px] text-emerald-200/70">{content.metrics.metric2Subtitle}</p>
+            )}
+
+            {/* ===== PREVIEW: POIN KEUNGGULAN ===== */}
+            {activeTab === 'metrics' && (
+              <div className="bg-gradient-to-b from-emerald-950 via-emerald-900 to-slate-900 p-6 rounded-xl border border-emerald-700/40 space-y-3">
+                <div className={`grid grid-cols-2 ${content.metrics.length >= 5 ? 'sm:grid-cols-6' : metricsCols} gap-2`}>
+                  {content.metrics.map((m, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 bg-emerald-900/40 rounded-lg border border-emerald-700/30 ${
+                        content.metrics.length >= 5 ? edgeSpan(i, content.metrics.length) : ''
+                      }`}>
+
+                      <span className="text-emerald-400 font-bold text-xs">{m.title}</span>
+                      <p className="text-[10px] text-emerald-200/70 mt-0.5">{m.subtitle}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="p-2 bg-emerald-900/40 rounded-lg border border-emerald-700/30">
-                <span className="text-emerald-400 font-bold text-xs">{content.metrics.metric3Title}</span>
-                <p className="text-[10px] text-emerald-200/70">{content.metrics.metric3Subtitle}</p>
+            )}
+
+            {/* ===== PREVIEW: SYARAT DOKUMEN ===== */}
+            {activeTab === 'syarat' && (
+              <div className="bg-slate-50 text-slate-900 p-6 rounded-xl space-y-3">
+                <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest text-center">
+                  {content.syarat.syaratBadge}
+                </p>
+                <h3 className="text-base font-black text-center tracking-tight">
+                  {content.syarat.syaratTitle}
+                </h3>
+                <p className="text-[11px] text-slate-500 text-center max-w-lg mx-auto">
+                  {content.syarat.syaratSubtitle}
+                </p>
+                <div className={`grid grid-cols-1 ${content.syarat.items.length >= 5 ? 'sm:grid-cols-6' : syaratCols} gap-2.5 pt-1`}>
+                  {content.syarat.items.map((s, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 bg-white rounded-xl border border-slate-200 shadow-2xs ${
+                        content.syarat.items.length >= 5 ? edgeSpan(i, content.syarat.items.length) : ''
+                      }`}>
+
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">
+                        {i + 1}
+                      </div>
+                      <h4 className="font-bold text-slate-900 text-[11px] leading-snug">{s.title}</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="p-2 bg-emerald-900/40 rounded-lg border border-emerald-700/30">
-                <span className="text-emerald-400 font-bold text-xs">{content.metrics.metric4Title}</span>
-                <p className="text-[10px] text-emerald-200/70">{content.metrics.metric4Subtitle}</p>
+            )}
+
+            {/* ===== PREVIEW: PANDUAN 4 LANGKAH ===== */}
+            {activeTab === 'panduan' && (
+              <div className="bg-white text-slate-900 p-6 rounded-xl space-y-4">
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                    {content.panduan.panduanBadge}
+                  </p>
+                  <h3 className="text-base font-black tracking-tight mt-0.5">
+                    {content.panduan.panduanTitle}
+                  </h3>
+                </div>
+                <div className={`grid grid-cols-2 ${content.panduan.steps.length >= 5 ? 'sm:grid-cols-6' : panduanCols} gap-2.5`}>
+                  {content.panduan.steps.map((s, i) => (
+                    <div
+                      key={i}
+                      className={`text-center space-y-1.5 ${
+                        content.panduan.steps.length >= 5 ? edgeSpan(i, content.panduan.steps.length) : ''
+                      }`}>
+
+                      <div className="w-9 h-9 mx-auto rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-emerald-600/20">
+                        {i + 1}
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-[11px] leading-snug">{s.title}</h4>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* ===== PREVIEW: BANNER CTA BAWAH ===== */}
+            {activeTab === 'cta' && (
+              <div className="bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 p-6 rounded-xl border border-emerald-700/60 text-center space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold">
+                  {content.cta.ctaBadge}
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white max-w-lg mx-auto leading-snug tracking-tight">
+                  {content.cta.ctaTitle}
+                </h3>
+                <p className="text-[11px] text-emerald-100/90 max-w-md mx-auto">
+                  {content.cta.ctaSubtitle}
+                </p>
+                <div className="flex justify-center gap-2 pt-1">
+                  <span className="px-4 py-2 bg-emerald-400 text-slate-950 font-black rounded-lg text-xs">
+                    {content.cta.ctaPrimaryBtn} &rarr;
+                  </span>
+                  <span className="px-4 py-2 bg-white/10 text-white font-bold rounded-lg text-xs border border-white/20">
+                    {content.cta.ctaSecondaryBtn}
+                  </span>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 pt-2 border-t border-emerald-800/40 text-[10px] text-emerald-200/80">
+                  <span className="flex items-center gap-1">✓ {content.cta.ctaChip1}</span>
+                  <span className="flex items-center gap-1">✓ {content.cta.ctaChip2}</span>
+                  <span className="flex items-center gap-1">✓ {content.cta.ctaChip3}</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-200 overflow-x-auto gap-1 bg-white px-4 pt-2 rounded-t-2xl">
         <button
@@ -378,8 +556,7 @@ export const MasterLandingContentManager: React.FC = () => {
             activeTab === 'hero'
               ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
+          }`}>
           <Sparkles className="w-4 h-4" /> 1. Hero & Headline
         </button>
 
@@ -389,8 +566,7 @@ export const MasterLandingContentManager: React.FC = () => {
             activeTab === 'metrics'
               ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
+          }`}>
           <CheckCircle2 className="w-4 h-4" /> 2. Poin Keunggulan (4 Kartu)
         </button>
 
@@ -400,8 +576,7 @@ export const MasterLandingContentManager: React.FC = () => {
             activeTab === 'syarat'
               ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
+          }`}>
           <FileText className="w-4 h-4" /> 3. Syarat Dokumen
         </button>
 
@@ -411,8 +586,7 @@ export const MasterLandingContentManager: React.FC = () => {
             activeTab === 'panduan'
               ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
+          }`}>
           <ListOrdered className="w-4 h-4" /> 4. Alur (4 Langkah)
         </button>
 
@@ -422,20 +596,8 @@ export const MasterLandingContentManager: React.FC = () => {
             activeTab === 'cta'
               ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
+          }`}>
           <Megaphone className="w-4 h-4" /> 5. Banner CTA Bawah
-        </button>
-
-        <button
-          onClick={() => setActiveTab('kontak')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
-            activeTab === 'kontak'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Building className="w-4 h-4" /> 6. Info Sekolah & Kontak
         </button>
       </div>
 
@@ -512,85 +674,51 @@ export const MasterLandingContentManager: React.FC = () => {
         {/* TAB 2: METRICS / KEUNGGULAN */}
         {activeTab === 'metrics' && (
           <div className="space-y-5 animate-in fade-in duration-200">
-            <div>
-              <h3 className="text-base font-bold text-slate-800">4 Poin Keunggulan (Metrics Cards)</h3>
-              <p className="text-xs text-slate-500">
-                4 kotak keunggulan tepat di bawah tombol pendaftaran hero.
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-800">Poin Keunggulan (Metrics Cards)</h3>
+                <p className="text-xs text-slate-500">
+                  Kartu-kartu keunggulan tepat di bawah tombol pendaftaran hero. Tambah/kurang sesuai kebutuhan.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={addMetricsItem}
+                className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> Tambah Poin
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
-                  Kartu Keunggulan 1
-                </span>
-                <InputField
-                  label="Judul Kartu 1"
-                  value={content.metrics.metric1Title}
-                  onChange={(e) => updateMetrics('metric1Title', e.target.value)}
-                  placeholder="Akreditasi A"
-                />
-                <InputField
-                  label="Sub-keterangan Kartu 1"
-                  value={content.metrics.metric1Subtitle}
-                  onChange={(e) => updateMetrics('metric1Subtitle', e.target.value)}
-                  placeholder="Kemendikbudristek"
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
-                  Kartu Keunggulan 2
-                </span>
-                <InputField
-                  label="Judul Kartu 2"
-                  value={content.metrics.metric2Title}
-                  onChange={(e) => updateMetrics('metric2Title', e.target.value)}
-                  placeholder="100% Online"
-                />
-                <InputField
-                  label="Sub-keterangan Kartu 2"
-                  value={content.metrics.metric2Subtitle}
-                  onChange={(e) => updateMetrics('metric2Subtitle', e.target.value)}
-                  placeholder="Tanpa Antre di Sekolah"
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
-                  Kartu Keunggulan 3
-                </span>
-                <InputField
-                  label="Judul Kartu 3"
-                  value={content.metrics.metric3Title}
-                  onChange={(e) => updateMetrics('metric3Title', e.target.value)}
-                  placeholder="24 Jam"
-                />
-                <InputField
-                  label="Sub-keterangan Kartu 3"
-                  value={content.metrics.metric3Subtitle}
-                  onChange={(e) => updateMetrics('metric3Subtitle', e.target.value)}
-                  placeholder="Akses Formulir Kapanpun"
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
-                  Kartu Keunggulan 4
-                </span>
-                <InputField
-                  label="Judul Kartu 4"
-                  value={content.metrics.metric4Title}
-                  onChange={(e) => updateMetrics('metric4Title', e.target.value)}
-                  placeholder="WhatsApp Notif"
-                />
-                <InputField
-                  label="Sub-keterangan Kartu 4"
-                  value={content.metrics.metric4Subtitle}
-                  onChange={(e) => updateMetrics('metric4Subtitle', e.target.value)}
-                  placeholder="Update Status Realtime"
-                />
-              </div>
+              {content.metrics.map((m, i) => (
+                <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
+                      Kartu Keunggulan {i + 1}
+                    </span>
+                    <button
+                      onClick={() => removeMetricsItem(i)}
+                      className="text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Hapus poin ini"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <InputField
+                    label={`Judul Kartu ${i + 1}`}
+                    value={m.title}
+                    onChange={(e) => updateMetricsItem(i, 'title', e.target.value)}
+                    placeholder="Akreditasi A"
+                  />
+                  <InputField
+                    label={`Sub-keterangan Kartu ${i + 1}`}
+                    value={m.subtitle}
+                    onChange={(e) => updateMetricsItem(i, 'subtitle', e.target.value)}
+                    placeholder="Kemendikbudristek"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -635,64 +763,56 @@ export const MasterLandingContentManager: React.FC = () => {
             </div>
 
             <div className="space-y-4 pt-2">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Dokumen 1</span>
-                <InputField
-                  label="Nama Dokumen 1"
-                  value={content.syarat.syarat1Title}
-                  onChange={(e) => updateSyarat('syarat1Title', e.target.value)}
-                  placeholder="Ijazah SD / Surat Keterangan Lulus (SKL)"
-                />
-                <InputField
-                  label="Penjelasan Dokumen 1"
-                  value={content.syarat.syarat1Desc}
-                  onChange={(e) => updateSyarat('syarat1Desc', e.target.value)}
-                  placeholder="Scan asli atau fotokopi legalisir..."
-                />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                  Daftar Dokumen ({content.syarat.items.length})
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={addSyaratItem}
+                  className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Tambah Dokumen
+                </Button>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Dokumen 2</span>
-                <InputField
-                  label="Nama Dokumen 2"
-                  value={content.syarat.syarat2Title}
-                  onChange={(e) => updateSyarat('syarat2Title', e.target.value)}
-                  placeholder="Kartu Keluarga (KK)"
-                />
-                <InputField
-                  label="Penjelasan Dokumen 2"
-                  value={content.syarat.syarat2Desc}
-                  onChange={(e) => updateSyarat('syarat2Desc', e.target.value)}
-                  placeholder="Scan Kartu Keluarga..."
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Dokumen 3</span>
-                <InputField
-                  label="Nama Dokumen 3"
-                  value={content.syarat.syarat3Title}
-                  onChange={(e) => updateSyarat('syarat3Title', e.target.value)}
-                  placeholder="Akta Kelahiran Calon Siswa"
-                />
-                <InputField
-                  label="Penjelasan Dokumen 3"
-                  value={content.syarat.syarat3Desc}
-                  onChange={(e) => updateSyarat('syarat3Desc', e.target.value)}
-                  placeholder="Scan Akta Kelahiran resmi dari Dukcapil..."
-                />
-              </div>
+              {content.syarat.items.map((s, i) => (
+                <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-700">Dokumen {i + 1}</span>
+                    <button
+                      onClick={() => removeSyaratItem(i)}
+                      className="text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Hapus dokumen ini"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <InputField
+                    label={`Nama Dokumen ${i + 1}`}
+                    value={s.title}
+                    onChange={(e) => updateSyaratItem(i, 'title', e.target.value)}
+                    placeholder="Kartu Keluarga (KK)"
+                  />
+                  <InputField
+                    label={`Penjelasan Dokumen ${i + 1}`}
+                    value={s.desc}
+                    onChange={(e) => updateSyaratItem(i, 'desc', e.target.value)}
+                    placeholder="Scan Kartu Keluarga..."
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* TAB 4: PANDUAN 4 LANGKAH */}
+        {/* TAB 4: PANDUAN LANGKAH PENDAFTARAN */}
         {activeTab === 'panduan' && (
           <div className="space-y-5 animate-in fade-in duration-200">
             <div>
-              <h3 className="text-base font-bold text-slate-800">Panduan 4 Langkah Pendaftaran</h3>
+              <h3 className="text-base font-bold text-slate-800">Panduan Langkah Pendaftaran</h3>
               <p className="text-xs text-slate-500">
-                Alur alur pendaftaran langkah demi langkah untuk memandu orang tua.
+                Alur pendaftaran langkah demi langkah untuk memandu orang tua. Jumlah langkah bebas.
               </p>
             </div>
 
@@ -716,70 +836,46 @@ export const MasterLandingContentManager: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Langkah 1</span>
-                <InputField
-                  label="Judul Langkah 1"
-                  value={content.panduan.step1Title}
-                  onChange={(e) => updatePanduan('step1Title', e.target.value)}
-                  placeholder="Isi Biodata Lengkap"
-                />
-                <InputField
-                  label="Deskripsi Langkah 1"
-                  value={content.panduan.step1Desc}
-                  onChange={(e) => updatePanduan('step1Desc', e.target.value)}
-                  placeholder="Isi data calon siswa..."
-                />
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                  Daftar Langkah ({content.panduan.steps.length})
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={addPanduanStep}
+                  className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Tambah Langkah
+                </Button>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Langkah 2</span>
-                <InputField
-                  label="Judul Langkah 2"
-                  value={content.panduan.step2Title}
-                  onChange={(e) => updatePanduan('step2Title', e.target.value)}
-                  placeholder="Unggah Scan Dokumen"
-                />
-                <InputField
-                  label="Deskripsi Langkah 2"
-                  value={content.panduan.step2Desc}
-                  onChange={(e) => updatePanduan('step2Desc', e.target.value)}
-                  placeholder="Upload dokumen Ijazah..."
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Langkah 3</span>
-                <InputField
-                  label="Judul Langkah 3"
-                  value={content.panduan.step3Title}
-                  onChange={(e) => updatePanduan('step3Title', e.target.value)}
-                  placeholder="Verifikasi Panitia"
-                />
-                <InputField
-                  label="Deskripsi Langkah 3"
-                  value={content.panduan.step3Desc}
-                  onChange={(e) => updatePanduan('step3Desc', e.target.value)}
-                  placeholder="Panitia PPDB memverifikasi berkas..."
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-xs font-bold text-emerald-700">Langkah 4</span>
-                <InputField
-                  label="Judul Langkah 4"
-                  value={content.panduan.step4Title}
-                  onChange={(e) => updatePanduan('step4Title', e.target.value)}
-                  placeholder="Cetak Bukti Pendaftaran"
-                />
-                <InputField
-                  label="Deskripsi Langkah 4"
-                  value={content.panduan.step4Desc}
-                  onChange={(e) => updatePanduan('step4Desc', e.target.value)}
-                  placeholder="Dapatkan lembar bukti pendaftaran..."
-                />
-              </div>
+              {content.panduan.steps.map((s, i) => (
+                <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-700">Langkah {i + 1}</span>
+                    <button
+                      onClick={() => removePanduanStep(i)}
+                      className="text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Hapus langkah ini"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <InputField
+                    label={`Judul Langkah ${i + 1}`}
+                    value={s.title}
+                    onChange={(e) => updatePanduanStep(i, 'title', e.target.value)}
+                    placeholder="Isi Biodata Lengkap"
+                  />
+                  <InputField
+                    label={`Deskripsi Langkah ${i + 1}`}
+                    value={s.desc}
+                    onChange={(e) => updatePanduanStep(i, 'desc', e.target.value)}
+                    placeholder="Isi data calon siswa..."
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -873,104 +969,6 @@ export const MasterLandingContentManager: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 6: INFO SEKOLAH & KONTAK */}
-        {activeTab === 'kontak' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <div>
-              <h3 className="text-base font-bold text-slate-800">Informasi Lembaga & Kontak Helpdesk</h3>
-              <p className="text-xs text-slate-500">
-                Informasi identitas sekolah yang ditampilkan di footer, kontak bantuan orang tua, dan jam layanan PPDB.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <InputField
-                  label="Nama Resmi Sekolah"
-                  value={content.kontak.namaSekolah}
-                  onChange={(e) => updateKontak('namaSekolah', e.target.value)}
-                  placeholder="SMP YAPIA CIPUTAT"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  label="Status Akreditasi"
-                  value={content.kontak.akreditasi}
-                  onChange={(e) => updateKontak('akreditasi', e.target.value)}
-                  placeholder="Akreditasi A"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  label="Nomor Pokok Sekolah Nasional (NPSN)"
-                  value={content.kontak.npsn}
-                  onChange={(e) => updateKontak('npsn', e.target.value)}
-                  placeholder="20603210"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  label="Nomor WhatsApp Hotline PPDB"
-                  value={content.kontak.whatsapp}
-                  onChange={(e) => updateKontak('whatsapp', e.target.value)}
-                  placeholder="0812-3456-7890"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  label="Nomor Telepon Kantor"
-                  value={content.kontak.telepon}
-                  onChange={(e) => updateKontak('telepon', e.target.value)}
-                  placeholder="(021) 749-XXXX"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  label="Alamat Email Resmi PPDB"
-                  value={content.kontak.email}
-                  onChange={(e) => updateKontak('email', e.target.value)}
-                  placeholder="ppdb@smp-yapia.sch.id"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <InputField
-                  label="Alamat Lengkap Sekolah"
-                  value={content.kontak.alamatSekolah}
-                  onChange={(e) => updateKontak('alamatSekolah', e.target.value)}
-                  placeholder="Jl. KH. Dewantara No. 12, Ciputat, Kota Tangerang Selatan, Banten 15411"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-slate-700 block mb-1.5">
-                  Visi / Deskripsi Singkat Sekolah
-                </label>
-                <textarea
-                  rows={2}
-                  value={content.kontak.deskripsiSekolah}
-                  onChange={(e) => updateKontak('deskripsiSekolah', e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 transition-all"
-                  placeholder="Membentuk generasi berakhlak mulia..."
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <InputField
-                  label="Jadwal Pelayanan Panitia PPDB (Offline)"
-                  value={content.kontak.jadwalPelayanan}
-                  onChange={(e) => updateKontak('jadwalPelayanan', e.target.value)}
-                  placeholder="Senin – Jumat: 08.00 – 15.00 WIB | Sabtu: 08.00 – 12.00 WIB"
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Bottom Save Action Bar */}
         <div className="flex items-center justify-between pt-6 border-t border-slate-200">

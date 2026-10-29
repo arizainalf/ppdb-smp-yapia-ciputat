@@ -23,39 +23,35 @@ import { EksporDapodikModal } from '../../components/admin/EksporDapodikModal.js
 import { MasterGelombangManager } from '../../components/admin/MasterGelombangManager.js';
 import { MasterUsersManager } from '../../components/admin/MasterUsersManager.js';
 import { MasterLandingContentManager } from '../../components/admin/MasterLandingContentManager.js';
+import { MasterPengaturanManager } from '../../components/admin/MasterPengaturanManager.js';
 import { MasterHelpdeskManager } from '../../components/admin/MasterHelpdeskManager.js';
 import { Button } from '../../components/common/Button.js';
 import { useAuth } from '../../../application/contexts/AuthContext.js';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 interface AdminPageProps {
-  onBackToPublic: () => void;
 }
 
-export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic }) => {
+export const AdminDashboardPage: React.FC<AdminPageProps> = () => {
   const { user, can } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tabFromUrl = searchParams.get('tab') as AdminMenuKey | null;
-  const validTabs: AdminMenuKey[] = ['overview', 'pendaftar', 'gelombang', 'users', 'content', 'helpdesk', 'dapodik'];
-  const initialTab: AdminMenuKey = (tabFromUrl && validTabs.includes(tabFromUrl)) ? tabFromUrl : 'overview';
+  const { tab } = useParams<{ tab: string }>();
+  const navigate = useNavigate();
+  const validTabs: AdminMenuKey[] = ['overview', 'pendaftar', 'gelombang', 'users', 'content', 'pengaturan', 'helpdesk', 'dapodik'];
 
-  const [activeMenu, setActiveMenuState] = useState<AdminMenuKey>(initialTab);
+  // Menu aktif = segmen URL (/admin/pendaftar). Single source of truth: URL.
+  const activeMenu: AdminMenuKey =
+    tab && validTabs.includes(tab as AdminMenuKey) ? (tab as AdminMenuKey) : 'overview';
 
+  // Tab tak dikenal di URL -> kembali ke ringkasan
   useEffect(() => {
-    if (tabFromUrl && validTabs.includes(tabFromUrl) && tabFromUrl !== activeMenu) {
-      setActiveMenuState(tabFromUrl);
+    if (tab && !validTabs.includes(tab as AdminMenuKey)) {
+      navigate('/admin', { replace: true });
     }
-  }, [tabFromUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const setActiveMenu = (menu: AdminMenuKey) => {
-    setActiveMenuState(menu);
-    const newParams = new URLSearchParams(searchParams);
-    if (menu === 'overview') {
-      newParams.delete('tab');
-    } else {
-      newParams.set('tab', menu);
-    }
-    setSearchParams(newParams, { replace: true });
+    navigate(menu === 'overview' ? '/admin' : `/admin/${menu}`);
   };
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -186,6 +182,10 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
       title: 'Manajemen Gelombang Pendaftaran',
       subtitle: 'Konfigurasi periode buka/tutup pendaftaran, batas kuota, dan tarif biaya formulir.',
     },
+    pengaturan: {
+      title: 'Pengaturan PPDB',
+      subtitle: 'Saklar global buka/tutup pendaftaran online dan tahun ajaran aktif.',
+    },
     users: {
       title: 'Master Pengguna & Akun Panitia PPDB',
       subtitle: 'Kelola hak akses dan peran (Super Admin, Operator PPDB, Bendahara, Kepala Sekolah).',
@@ -210,7 +210,6 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
       <AdminSidebar
         activeMenu={activeMenu}
         onSelectMenu={(key) => setActiveMenu(key)}
-        onBackToPublic={onBackToPublic}
         isOpenMobile={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
         isCollapsed={isSidebarCollapsed}
@@ -458,6 +457,25 @@ export const AdminDashboardPage: React.FC<AdminPageProps> = ({ onBackToPublic })
                 <h3 className="text-base font-bold text-slate-800">Akses Terbatas: Konten Beranda (CMS)</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Pengaturan teks judul, banner, panduan, dan kontak publik beranda hanya dapat diakses oleh Super Admin.
+                </p>
+              </div>
+            )
+          )}
+
+          {/* View: PENGATURAN PPDB */}
+          {activeMenu === 'pengaturan' && (
+            can('MANAGE_CONTENT') ? (
+              <div className="animate-in fade-in duration-200">
+                <MasterPengaturanManager />
+              </div>
+            ) : (
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3 max-w-lg mx-auto">
+                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+                  🛡️
+                </div>
+                <h3 className="text-base font-bold text-slate-800">Akses Terbatas: Pengaturan</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Saklar buka/tutup pendaftaran hanya dapat diubah oleh Super Administrator.
                 </p>
               </div>
             )

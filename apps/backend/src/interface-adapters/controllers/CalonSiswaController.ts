@@ -287,6 +287,34 @@ export class CalonSiswaController {
   public handleCreate = async (c: Context) => {
     try {
       const body = await c.req.json();
+
+      // ---- GATE PENDAFTARAN: pengaturan global + periode gelombang ----
+      const { getPengaturanMap } = await import('../../infrastructure/http/routes/pengaturanRoutes.js');
+      const pengaturan = await getPengaturanMap();
+      if (pengaturan['pendaftaran_aktif'] !== '1') {
+        return c.json(
+          JSendPresenter.fail('Pendaftaran sedang ditutup oleh panitia. Silakan pantau pengumuman beranda.'),
+          403
+        );
+      }
+
+      const gelombangRes = await d1Client.query<any>(
+        `SELECT id, is_active, tanggal_buka, tanggal_tutup FROM gelombang_pendaftaran WHERE id = ? LIMIT 1`,
+        [body.gelombangId]
+      );
+      const g = gelombangRes.results[0];
+      if (!g || g.is_active !== 1) {
+        return c.json(JSendPresenter.fail('Gelombang pendaftaran tidak tersedia atau sudah ditutup.'), 403);
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      if (g.tanggal_buka && today < g.tanggal_buka) {
+        return c.json(JSendPresenter.fail(`Pendaftaran gelombang ini belum dibuka (mulai ${g.tanggal_buka}).`), 403);
+      }
+      if (g.tanggal_tutup && today > g.tanggal_tutup) {
+        return c.json(JSendPresenter.fail(`Pendaftaran gelombang ini sudah ditutup sejak ${g.tanggal_tutup}.`), 403);
+      }
+      // ------------------------------------------------------------------
+
       const validatedInput = createCalonSiswaSchema.parse(body);
 
       const result = await this.createUseCase.execute(validatedInput);

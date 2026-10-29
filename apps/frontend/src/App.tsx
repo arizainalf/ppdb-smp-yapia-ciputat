@@ -22,17 +22,16 @@ export type ViewState = 'landing' | 'register' | 'status' | 'admin' | 'login';
 // Protected Admin Route Guard: Mencegah mental saat refresh jika sudah login
 const ProtectedAdminRoute: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login?redirect=/admin" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (user?.role === 'PENDAFTAR') {
     return <Navigate to="/status" replace />;
   }
 
-  return <AdminDashboardPage onBackToPublic={() => navigate('/')} />;
+  return <AdminDashboardPage />;
 };
 
 const MainApp: React.FC = () => {
@@ -125,7 +124,7 @@ const MainApp: React.FC = () => {
             }
           />
           <Route path="/admin" element={<ProtectedAdminRoute />} />
-          <Route path="/admin/*" element={<ProtectedAdminRoute />} />
+          <Route path="/admin/:tab" element={<ProtectedAdminRoute />} />
           {/* Catch-all fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

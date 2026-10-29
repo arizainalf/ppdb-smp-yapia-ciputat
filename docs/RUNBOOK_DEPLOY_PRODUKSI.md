@@ -74,11 +74,19 @@ npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/seed.sql --remote
 
    # Jenis berkas baru: KTP_ORANG_TUA (rebuild tabel berkas_pendaftaran)
    npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0003_jenis_ktp_orang_tua.sql --remote
+
+   # Tabel rekening bank (transfer manual) + kolom rekening_id
+   npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0004_rekening_bank.sql --remote
+
+   # Potongan biaya per gelombang (Bantuan Pemkot Tangsel)
+   npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0005_potongan_biaya_gelombang.sql --remote
    ```
 3. Verifikasi:
    ```bash
    npx wrangler d1 execute yapia_sipmb_db --command="PRAGMA table_info(pembayaran_pendaftaran);" --remote
    npx wrangler d1 execute yapia_sipmb_db --command="SELECT sql FROM sqlite_master WHERE name='berkas_pendaftaran';" --remote
+   npx wrangler d1 execute yapia_sipmb_db --command="PRAGMA table_info(gelombang_pendaftaran);" --remote
+   npx wrangler d1 execute yapia_sipmb_db --command="SELECT id, potongan_biaya FROM gelombang_pendaftaran;" --remote
    ```
 
 **Aturan untuk rilis berikutnya:** setiap perubahan schema = file baru bernomor di `deploy/d1/migrations/` + sinkronkan `deploy/d1/schema.sql` (master). Jangan pernah mengedit file migrasi yang sudah dijalankan di produksi.

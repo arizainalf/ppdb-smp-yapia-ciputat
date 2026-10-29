@@ -22,7 +22,7 @@ export function createGelombangRouter(): Hono {
   router.get('/', async (c) => {
     try {
       const res = await d1Client.query<RawGelombang>(
-        'SELECT * FROM gelombang_pendaftaran ORDER BY id ASC'
+        'SELECT * FROM gelombang_pendaftaran ORDER BY is_active DESC, id DESC'
       );
 
       // Hitung kuota terisi per gelombang dari tabel calon_siswa

@@ -8,6 +8,7 @@ import { createUsersRouter } from './infrastructure/http/routes/usersRoutes.js';
 import { createContentRouter } from './infrastructure/http/routes/contentRoutes.js';
 import { createHelpdeskRouter } from './infrastructure/http/routes/helpdeskRoutes.js';
 import { createPembayaranRouter } from './infrastructure/http/routes/pembayaranRoutes.js';
+import { createPengaturanRouter } from './infrastructure/http/routes/pengaturanRoutes.js';
 import { d1Client } from './infrastructure/database/d1Client.js';
 
 export type Bindings = {
@@ -48,6 +49,7 @@ export function createApp() {
   app.route('/api/v1/content', createContentRouter());
   app.route('/api/v1/helpdesk', createHelpdeskRouter());
   app.route('/api/v1/pembayaran', createPembayaranRouter());
+  app.route('/api/v1/pengaturan', createPengaturanRouter());
 
   return app;
 }

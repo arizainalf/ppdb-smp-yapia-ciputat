@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   ExternalLink,
+  UsersRound
 } from 'lucide-react';
 import { useAuth } from '../../../application/contexts/AuthContext.js';
 
@@ -109,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <UserPlus className="w-4 h-4" />
-            <span>Daftar Sekarang</span>
+            <span>Daftar</span>
           </button>
 
           {/* Portal Panitia / Login Button */}
@@ -130,8 +131,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 {user?.role === 'PENDAFTAR' ? (
                   <>
-                    <span>👨‍👩‍👦</span>
-                    <span className="font-bold">Portal Pendaftar</span>
+                    <UsersRound className="w-4 h-4" />
+                    <span className="font-bold">Orang Tua</span>
                   </>
                 ) : (
                   <>
@@ -185,19 +186,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile Action Buttons (md:hidden) */}
         <div className="flex md:hidden items-center gap-2">
-          {/* Quick Register Button on Mobile */}
-          <button
-            onClick={() => onNavigate('register')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all shadow-xs ${
-              currentView === 'register'
-                ? 'bg-emerald-700 text-white ring-2 ring-emerald-400'
-                : 'bg-emerald-600 text-white active:bg-emerald-700'
-            }`}
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Daftar</span>
-          </button>
-
           {/* Hamburger Menu Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

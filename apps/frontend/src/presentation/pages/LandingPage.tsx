@@ -20,38 +20,52 @@ const DEFAULT_CONTENT: LandingContentDTO = {
     heroDaftarBtn: 'Daftar Sekarang',
     heroCekStatusBtn: 'Cek Status Pendaftaran',
   },
-  metrics: {
-    metric1Title: 'Akreditasi A',
-    metric1Subtitle: 'Kemendikbudristek',
-    metric2Title: '100% Online',
-    metric2Subtitle: 'Tanpa Antre di Sekolah',
-    metric3Title: '24 Jam',
-    metric3Subtitle: 'Akses Formulir Kapanpun',
-    metric4Title: 'WhatsApp Notif',
-    metric4Subtitle: 'Update Status Realtime',
-  },
+  metrics: [
+    { title: 'Akreditasi A', subtitle: 'Kemendikbudristek' },
+    { title: '100% Online', subtitle: 'Tanpa Antre di Sekolah' },
+    { title: '24 Jam', subtitle: 'Akses Formulir Kapanpun' },
+    { title: 'WhatsApp Notif', subtitle: 'Update Status Realtime' },
+  ],
   syarat: {
     syaratBadge: 'Persyaratan PPDB',
     syaratTitle: 'Dokumen Persyaratan yang Perlu Disiapkan',
     syaratSubtitle: 'Pastikan Anda telah menyiapkan foto atau scan berkas dokumen berikut sebelum mengisi formulir:',
-    syarat1Title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
-    syarat1Desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
-    syarat2Title: 'Kartu Keluarga (KK)',
-    syarat2Desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
-    syarat3Title: 'Akta Kelahiran Calon Siswa',
-    syarat3Desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+    items: [
+      {
+        title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
+        desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
+      },
+      {
+        title: 'Kartu Keluarga (KK)',
+        desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
+      },
+      {
+        title: 'Akta Kelahiran Calon Siswa',
+        desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+      },
+    ],
   },
   panduan: {
     panduanBadge: 'Panduan Pendaftaran',
     panduanTitle: '4 Langkah Mudah Pendaftaran Online',
-    step1Title: 'Isi Biodata Lengkap',
-    step1Desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
-    step2Title: 'Unggah Scan Dokumen',
-    step2Desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
-    step3Title: 'Verifikasi Panitia',
-    step3Desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
-    step4Title: 'Cetak Bukti Pendaftaran',
-    step4Desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+    steps: [
+      {
+        title: 'Isi Biodata Lengkap',
+        desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
+      },
+      {
+        title: 'Unggah Scan Dokumen',
+        desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
+      },
+      {
+        title: 'Verifikasi Panitia',
+        desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
+      },
+      {
+        title: 'Cetak Bukti Pendaftaran',
+        desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+      },
+    ],
   },
   cta: {
     ctaBadge: 'PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS',
@@ -101,6 +115,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onCheckStatus,
 }) => {
   const [siteContent, setSiteContent] = useState<LandingContentDTO>(DEFAULT_CONTENT);
+  const [pendaftaranAktif, setPendaftaranAktif] = useState(true);
+  // Kolom dinamis mengikuti jumlah item CMS: <=4 = 1 baris penuh; >=5 = 3 kolom (3+2, 3+3, ...)
+  const metricsCols =
+    siteContent.metrics.length <= 1
+      ? 'md:grid-cols-1'
+      : siteContent.metrics.length === 2
+        ? 'md:grid-cols-2'
+        : siteContent.metrics.length === 4
+          ? 'md:grid-cols-4'
+          : 'md:grid-cols-3';
+  const syaratCols =
+    siteContent.syarat.items.length <= 1
+      ? 'sm:grid-cols-1'
+      : siteContent.syarat.items.length === 2
+        ? 'sm:grid-cols-2'
+        : siteContent.syarat.items.length === 4
+          ? 'sm:grid-cols-4'
+          : 'sm:grid-cols-3';
+  const panduanCols =
+    siteContent.panduan.steps.length <= 1
+      ? 'lg:grid-cols-1'
+      : siteContent.panduan.steps.length === 2
+        ? 'lg:grid-cols-2'
+        : siteContent.panduan.steps.length === 4
+          ? 'lg:grid-cols-4'
+          : 'lg:grid-cols-3';
+  // Column spanning: saat >=5 item (grid dasar 6 kolom), item baris terakhir
+  // menyebar rata kiri-kanan (2 item -> span 3+3, 1 item -> span 6).
+  // Catatan: class ditulis literal agar Tailwind JIT mendeteksinya.
+  const edgeSpan = (i: number, n: number, p: 'sm' | 'md' | 'lg') => {
+    const lastStart = n - (n % 3 === 0 ? 3 : n % 3);
+    if (i < lastStart) return p === 'sm' ? 'sm:col-span-2' : p === 'md' ? 'md:col-span-2' : 'lg:col-span-2';
+    if (n - lastStart === 1) return p === 'sm' ? 'sm:col-span-6' : p === 'md' ? 'md:col-span-6' : 'lg:col-span-6';
+    return p === 'sm' ? 'sm:col-span-3' : p === 'md' ? 'md:col-span-3' : 'lg:col-span-3';
+  };
   const [gelombangList, setGelombangList] = useState<GelombangItem[]>([
     {
       id: 1,
@@ -148,6 +197,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         }
       })
       .catch((err) => console.error('Gagal mengambil konten dinamis beranda:', err));
+
+    // 3. Status pendaftaran (saklar global panitia)
+    fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || "http://localhost:8000"}`}/api/v1/pengaturan`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === 'success' && json.data) {
+          setPendaftaranAktif(Boolean(json.data.pendaftaranAktif));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -174,9 +233,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 sm:pt-4 w-full max-w-md sm:max-w-none mx-auto">
             <Button
               onClick={onStartRegistration}
-              className="w-full sm:w-auto px-6 py-3.5 text-base bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
-            >
-              {siteContent.hero.heroDaftarBtn} <ArrowRight className="w-5 h-5 ml-1" />
+              disabled={!pendaftaranAktif}
+              className={`w-full sm:w-auto px-6 py-3.5 text-base font-black shadow-lg transition-all ${
+                pendaftaranAktif
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                  : 'bg-slate-600 text-slate-300 cursor-not-allowed shadow-none'
+              }`}>
+              {pendaftaranAktif ? (
+                <>{siteContent.hero.heroDaftarBtn} <ArrowRight className="w-5 h-5 ml-1" /></>
+              ) : (
+                'Pendaftaran Ditutup'
+              )}
             </Button>
             <Button
               variant="outline"
@@ -188,23 +255,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Quick Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-10 border-t border-emerald-700/40 max-w-4xl mx-auto text-left">
-            <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric1Title}</span>
-              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric1Subtitle}</p>
-            </div>
-            <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric2Title}</span>
-              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric2Subtitle}</p>
-            </div>
-            <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric3Title}</span>
-              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric3Subtitle}</p>
-            </div>
-            <div className="p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30">
-              <span className="text-emerald-400 font-extrabold text-xl">{siteContent.metrics.metric4Title}</span>
-              <p className="text-[11px] text-emerald-200/70">{siteContent.metrics.metric4Subtitle}</p>
-            </div>
+          <div className={`grid grid-cols-2 ${siteContent.metrics.length >= 5 ? 'md:grid-cols-6' : metricsCols} gap-3 pt-10 border-t border-emerald-700/40 max-w-4xl mx-auto text-left`}>
+            {siteContent.metrics.map((m, i) => (
+              <div
+                key={i}
+                className={`p-3 bg-emerald-800/30 rounded-xl border border-emerald-700/30 ${
+                  siteContent.metrics.length >= 5 ? edgeSpan(i, siteContent.metrics.length, 'md') : ''
+                }`}>
+
+                <span className="text-emerald-400 font-extrabold text-xl">{m.title}</span>
+                <p className="text-[11px] text-emerald-200/70">{m.subtitle}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -235,23 +297,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   g.isActive
                     ? 'border-emerald-500 shadow-md shadow-emerald-500/10'
                     : 'border-slate-200 opacity-80'
-                }`}
-              >
+                }`}>
                 <span
                   className={`absolute top-0 right-0 font-extrabold text-[10px] px-3 py-1 rounded-bl-xl tracking-wider uppercase ${
                     g.isActive
                       ? 'bg-emerald-600 text-white'
                       : 'bg-slate-200 text-slate-600'
-                  }`}
-                >
+                  }`}>
                   {g.isActive ? 'Sedang Dibuka' : 'Ditutup / Segera'}
                 </span>
                 <div>
                   <div
                     className={`flex items-center gap-2 font-extrabold text-lg ${
                       g.isActive ? 'text-emerald-700' : 'text-slate-800'
-                    }`}
-                  >
+                    }`}>
                     {g.isActive ? <Calendar className="w-5 h-5" /> : <Clock className="w-5 h-5 text-slate-400" />}
                     {g.namaGelombang}
                   </div>
@@ -304,9 +363,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
 
                 {g.isActive ? (
-                  <Button onClick={onStartRegistration} className="mt-6 w-full">
-                    Daftar Sekarang &rarr;
-                  </Button>
+                  pendaftaranAktif ? (
+                    <Button onClick={onStartRegistration} className="mt-6 w-full">
+                      Daftar Sekarang &rarr;
+                    </Button>
+                  ) : (
+                    <Button disabled className="mt-6 w-full opacity-60">
+                      Pendaftaran Ditutup
+                    </Button>
+                  )
                 ) : (
                   <Button variant="secondary" disabled className="mt-6 w-full opacity-60">
                     Jadwal Belum Dibuka
@@ -377,36 +442,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
-                1
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat1Title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {siteContent.syarat.syarat1Desc}
-              </p>
-            </div>
+          <div className={`grid grid-cols-1 ${siteContent.syarat.items.length >= 5 ? 'sm:grid-cols-6' : syaratCols} gap-4`}>
+            {siteContent.syarat.items.map((s, i) => (
+              <div
+                key={i}
+                className={`p-5 bg-white rounded-xl border border-slate-200 shadow-2xs ${
+                  siteContent.syarat.items.length >= 5 ? edgeSpan(i, siteContent.syarat.items.length, 'sm') : ''
+                }`}>
 
-            <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
-                2
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
+                  {i + 1}
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm mb-1">{s.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat2Title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {siteContent.syarat.syarat2Desc}
-              </p>
-            </div>
-
-            <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base mb-3">
-                3
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm mb-1">{siteContent.syarat.syarat3Title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {siteContent.syarat.syarat3Desc}
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -422,46 +472,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
-              1
-            </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step1Title}</h4>
-            <p className="text-xs text-slate-500">
-              {siteContent.panduan.step1Desc}
-            </p>
-          </div>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${siteContent.panduan.steps.length >= 5 ? 'lg:grid-cols-6' : panduanCols} gap-6`}>
+          {siteContent.panduan.steps.map((step, i) => (
+            <div
+              key={i}
+              className={`flex flex-col items-center text-center p-4 ${
+                siteContent.panduan.steps.length >= 5 ? edgeSpan(i, siteContent.panduan.steps.length, 'lg') : ''
+              }`}>
 
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
-              2
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
+                {i + 1}
+              </div>
+              <h4 className="font-bold text-slate-800 text-sm mb-1">{step.title}</h4>
+              <p className="text-xs text-slate-500">{step.desc}</p>
             </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step2Title}</h4>
-            <p className="text-xs text-slate-500">
-              {siteContent.panduan.step2Desc}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
-              3
-            </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step3Title}</h4>
-            <p className="text-xs text-slate-500">
-              {siteContent.panduan.step3Desc}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg mb-3 shadow-md shadow-emerald-600/20">
-              4
-            </div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">{siteContent.panduan.step4Title}</h4>
-            <p className="text-xs text-slate-500">
-              {siteContent.panduan.step4Desc}
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -490,10 +515,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
               <Button
                 onClick={onStartRegistration}
-                className="w-full sm:w-auto px-8 py-4 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-base rounded-2xl shadow-xl shadow-emerald-950/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer ring-4 ring-emerald-400/20"
-              >
-                <span>{siteContent.cta.ctaPrimaryBtn}</span>
-                <ArrowRight className="w-5 h-5 shrink-0" />
+                disabled={!pendaftaranAktif}
+                className={`w-full sm:w-auto px-8 py-4 font-black text-base rounded-2xl transition-all flex items-center justify-center gap-2.5 ${
+                  pendaftaranAktif
+                    ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 shadow-xl shadow-emerald-950/50 hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-emerald-400/20'
+                    : 'bg-slate-600 text-slate-300 shadow-xl shadow-emerald-950/50 cursor-not-allowed ring-4 ring-slate-500/20'
+                }`}>
+                <span>{pendaftaranAktif ? siteContent.cta.ctaPrimaryBtn : 'Pendaftaran Ditutup'}</span>
+                {pendaftaranAktif && <ArrowRight className="w-5 h-5 shrink-0" />}
               </Button>
 
               <Button

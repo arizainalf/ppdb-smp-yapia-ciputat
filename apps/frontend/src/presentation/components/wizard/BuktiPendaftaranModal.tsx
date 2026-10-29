@@ -2,6 +2,7 @@ import React from 'react';
 import { RegistrationFormData } from '../../../domain/models/CalonSiswaModel.js';
 import { Printer, CheckCircle, QrCode, Download, X } from 'lucide-react';
 import { Button } from '../common/Button.js';
+import { printElement } from '../../utils/print.js';
 
 interface BuktiProps {
   formData: Partial<RegistrationFormData>;
@@ -15,7 +16,7 @@ export const BuktiPendaftaranModal: React.FC<BuktiProps> = ({
   onClose,
 }) => {
   const handlePrint = () => {
-    window.print();
+    printElement(document.getElementById('printable-card'));
   };
 
   return (

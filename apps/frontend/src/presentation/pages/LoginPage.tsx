@@ -12,7 +12,6 @@ import {
 import { useAuth } from '../../application/contexts/AuthContext.js';
 import { Button } from '../components/common/Button.js';
 import { InputField } from '../components/common/InputField.js';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
   onBackToHome: () => void;
@@ -26,16 +25,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
 }) => {
   const { login, loginPendaftar, isAuthenticated, user, logout } = useAuth();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const redirectTarget = searchParams.get('redirect');
 
+  // Login sukses -> default per role: panitia ke /admin, pendaftar ke /status
   const handleSuccessRedirect = (defaultTarget: 'admin' | 'status') => {
-    if (redirectTarget) {
-      navigate(redirectTarget);
-    } else {
-      onLoginSuccess(defaultTarget);
-    }
+    onLoginSuccess(defaultTarget);
   };
 
   const [loginType, setLoginType] = useState<'pendaftar' | 'panitia'>('pendaftar');
@@ -359,14 +352,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     />
 
                     <span className="text-[11px] text-slate-500 block">
-                      💡 <strong>Catatan:</strong> Masukkan nomor WhatsApp dan Email yang sesuai dengan data saat mendaftar. Atau gunakan tombol <em>Akses Cepat Pengujian (1-Klik Demo)</em> di bawah.
+                      <strong>Catatan:</strong> Masukkan nomor WhatsApp dan Email yang sesuai dengan data saat mendaftar.
                     </span>
                   </div>
 
                   <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-md shadow-emerald-800/20 rounded-xl cursor-pointer mt-2"
+                    className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-md shadow-emerald-800/20 rounded-xl cursor-pointer !mt-2"
                   >
                     <UserCheck className="w-4 h-4" /> Masuk ke Status Pendaftaran Ananda
                   </Button>
@@ -409,16 +402,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         onChange={(e) => setPasswordPanitia(e.target.value)}
                         placeholder="Masukkan kata sandi..."
                       />
-                      <span className="text-[11px] text-slate-400 mt-1 block">
-                        Password demo default: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">password123</code>
-                      </span>
+                      <a
+                        href="#"
+                        className="mt-2 inline-block text-[11px] text-slate-500 hover:text-slate-800 hover:underline"
+                      >
+                        Lupa kata sandi?
+                      </a>
                     </div>
                   </div>
 
                   <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md rounded-xl cursor-pointer mt-2"
+                    className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md rounded-xl cursor-pointer !mt-4"
                   >
                     <Lock className="w-4 h-4" /> Masuk ke Dasbor Panitia
                   </Button>

@@ -13,38 +13,52 @@ export const DEFAULT_LANDING_CONTENT: LandingContentDTO = {
     heroDaftarBtn: 'Daftar Sekarang',
     heroCekStatusBtn: 'Cek Status Pendaftaran',
   },
-  metrics: {
-    metric1Title: 'Akreditasi A',
-    metric1Subtitle: 'Kemendikbudristek',
-    metric2Title: '100% Online',
-    metric2Subtitle: 'Tanpa Antre di Sekolah',
-    metric3Title: '24 Jam',
-    metric3Subtitle: 'Akses Formulir Kapanpun',
-    metric4Title: 'WhatsApp Notif',
-    metric4Subtitle: 'Update Status Realtime',
-  },
+  metrics: [
+    { title: 'Akreditasi A', subtitle: 'Kemendikbudristek' },
+    { title: '100% Online', subtitle: 'Tanpa Antre di Sekolah' },
+    { title: '24 Jam', subtitle: 'Akses Formulir Kapanpun' },
+    { title: 'WhatsApp Notif', subtitle: 'Update Status Realtime' },
+  ],
   syarat: {
     syaratBadge: 'Persyaratan PPDB',
     syaratTitle: 'Dokumen Persyaratan yang Perlu Disiapkan',
     syaratSubtitle: 'Pastikan Anda telah menyiapkan foto atau scan berkas dokumen berikut sebelum mengisi formulir:',
-    syarat1Title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
-    syarat1Desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
-    syarat2Title: 'Kartu Keluarga (KK)',
-    syarat2Desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
-    syarat3Title: 'Akta Kelahiran Calon Siswa',
-    syarat3Desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+    items: [
+      {
+        title: 'Ijazah SD / Surat Keterangan Lulus (SKL)',
+        desc: 'Scan asli atau fotokopi legalisir yang memuat nama siswa dan NISN yang jelas.',
+      },
+      {
+        title: 'Kartu Keluarga (KK)',
+        desc: 'Scan Kartu Keluarga yang mencantumkan nama orang tua/wali serta Nomor Induk Kependudukan (NIK).',
+      },
+      {
+        title: 'Akta Kelahiran Calon Siswa',
+        desc: 'Scan Akta Kelahiran resmi dari Dukcapil untuk verifikasi tanggal lahir dan usia anak.',
+      },
+    ],
   },
   panduan: {
     panduanBadge: 'Panduan Pendaftaran',
     panduanTitle: '4 Langkah Mudah Pendaftaran Online',
-    step1Title: 'Isi Biodata Lengkap',
-    step1Desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
-    step2Title: 'Unggah Scan Dokumen',
-    step2Desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
-    step3Title: 'Verifikasi Panitia',
-    step3Desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
-    step4Title: 'Cetak Bukti Pendaftaran',
-    step4Desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+    steps: [
+      {
+        title: 'Isi Biodata Lengkap',
+        desc: 'Isi data calon siswa, riwayat SD asal, alamat domisili, dan data orang tua/wali.',
+      },
+      {
+        title: 'Unggah Scan Dokumen',
+        desc: 'Upload dokumen Ijazah/SKL, KK, dan Akta Kelahiran langsung dari ponsel/laptop.',
+      },
+      {
+        title: 'Verifikasi Panitia',
+        desc: 'Panitia PPDB memverifikasi keabsahan berkas Anda dalam waktu 1x24 jam kerja.',
+      },
+      {
+        title: 'Cetak Bukti Pendaftaran',
+        desc: 'Dapatkan lembar bukti pendaftaran ber-QR Code untuk registrasi ulang di sekolah.',
+      },
+    ],
   },
   cta: {
     ctaBadge: 'PPDB ONLINE T.A 2026/2027 • KUOTA GELOMBANG TERBATAS',
@@ -78,6 +92,38 @@ interface SiteContentRow {
   updated_by?: string | null;
 }
 
+type PartialLanding = Partial<LandingContentDTO>;
+
+// Konversi blob format lama (metric1Title / syarat1Title / step1Title) ke format array.
+// ponytail: hapus helper ini jika yakin tidak ada lagi data lama di DB produksi.
+function normalizeLegacyLanding(parsed: Record<string, unknown>): PartialLanding {
+  const p = parsed as any;
+  const out: PartialLanding = { ...p };
+
+  if (!Array.isArray(p.metrics) && p.metrics && typeof p.metrics === 'object') {
+    out.metrics = [1, 2, 3, 4]
+      .map((i) => ({ title: p.metrics[`metric${i}Title`], subtitle: p.metrics[`metric${i}Subtitle`] }))
+      .filter((m) => m.title);
+  }
+  if (p.syarat && !Array.isArray(p.syarat.items) && typeof p.syarat === 'object') {
+    out.syarat = {
+      ...p.syarat,
+      items: [1, 2, 3]
+        .map((i) => ({ title: p.syarat[`syarat${i}Title`], desc: p.syarat[`syarat${i}Desc`] }))
+        .filter((s) => s.title),
+    };
+  }
+  if (p.panduan && !Array.isArray(p.panduan.steps) && typeof p.panduan === 'object') {
+    out.panduan = {
+      ...p.panduan,
+      steps: [1, 2, 3, 4]
+        .map((i) => ({ title: p.panduan[`step${i}Title`], desc: p.panduan[`step${i}Desc`] }))
+        .filter((s) => s.title),
+    };
+  }
+  return out;
+}
+
 export function createContentRouter(): Hono {
   const router = new Hono();
 
@@ -97,12 +143,12 @@ export function createContentRouter(): Hono {
       }
 
       const row = res.results[0];
-      const parsed = JSON.parse(row.value) as Partial<LandingContentDTO>;
+      const parsed = normalizeLegacyLanding(JSON.parse(row.value));
 
       // Deep merge with DEFAULT_LANDING_CONTENT to ensure no missing keys
       const merged: LandingContentDTO = {
         hero: { ...DEFAULT_LANDING_CONTENT.hero, ...(parsed.hero || {}) },
-        metrics: { ...DEFAULT_LANDING_CONTENT.metrics, ...(parsed.metrics || {}) },
+        metrics: Array.isArray(parsed.metrics) ? parsed.metrics : DEFAULT_LANDING_CONTENT.metrics,
         syarat: { ...DEFAULT_LANDING_CONTENT.syarat, ...(parsed.syarat || {}) },
         panduan: { ...DEFAULT_LANDING_CONTENT.panduan, ...(parsed.panduan || {}) },
         cta: { ...DEFAULT_LANDING_CONTENT.cta, ...(parsed.cta || {}) },
@@ -138,13 +184,14 @@ export function createContentRouter(): Hono {
       }
 
       // Merge incoming with default to guarantee completeness
+      const incoming = normalizeLegacyLanding(content);
       const cleanContent: LandingContentDTO = {
-        hero: { ...DEFAULT_LANDING_CONTENT.hero, ...(content.hero || {}) },
-        metrics: { ...DEFAULT_LANDING_CONTENT.metrics, ...(content.metrics || {}) },
-        syarat: { ...DEFAULT_LANDING_CONTENT.syarat, ...(content.syarat || {}) },
-        panduan: { ...DEFAULT_LANDING_CONTENT.panduan, ...(content.panduan || {}) },
-        cta: { ...DEFAULT_LANDING_CONTENT.cta, ...(content.cta || {}) },
-        kontak: { ...DEFAULT_LANDING_CONTENT.kontak, ...(content.kontak || {}) },
+        hero: { ...DEFAULT_LANDING_CONTENT.hero, ...(incoming.hero || {}) },
+        metrics: Array.isArray(incoming.metrics) ? incoming.metrics : DEFAULT_LANDING_CONTENT.metrics,
+        syarat: { ...DEFAULT_LANDING_CONTENT.syarat, ...(incoming.syarat || {}) },
+        panduan: { ...DEFAULT_LANDING_CONTENT.panduan, ...(incoming.panduan || {}) },
+        cta: { ...DEFAULT_LANDING_CONTENT.cta, ...(incoming.cta || {}) },
+        kontak: { ...DEFAULT_LANDING_CONTENT.kontak, ...(incoming.kontak || {}) },
       };
 
       const jsonStr = JSON.stringify(cleanContent);

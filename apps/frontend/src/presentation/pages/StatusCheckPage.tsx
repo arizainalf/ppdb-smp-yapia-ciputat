@@ -16,6 +16,7 @@ import {
   User,
 } from 'lucide-react';
 import { Button } from '../components/common/Button.js';
+import { printElement } from '../utils/print.js';
 import { InputField } from '../components/common/InputField.js';
 import { useAuth } from '../../application/contexts/AuthContext.js';
 
@@ -231,7 +232,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
 
       {/* Result Display */}
       {hasSearched && result && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-300">
+        <div id="status-print-area" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-300">
           {/* Card Top Title Bar */}
           <div className="p-6 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -459,7 +460,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
               {['LOLOS_SELEKSI', 'MENGIKUTI_MPLS', 'DITERIMA_RESMI'].includes(result.status) && (
                 <Button
                   onClick={() => setShowSKModal(true)}
@@ -470,7 +471,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
               )}
 
               <Button
-                onClick={() => window.print()}
+                onClick={() => printElement(document.getElementById('status-print-area'))}
                 variant="outline"
                 className="w-full sm:w-auto text-xs py-2 flex items-center gap-1.5 cursor-pointer"
               >
@@ -498,7 +499,7 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
       {/* Modal Cetak Surat Keputusan Resmi (SK) Kelulusan */}
       {showSKModal && result && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-4 border border-slate-200 text-slate-900 font-sans">
+          <div id="sk-print-area" className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-4 border border-slate-200 text-slate-900 font-sans">
             <div className="text-center border-b-2 border-slate-900 pb-3">
               <h4 className="text-xs font-black tracking-wider uppercase text-slate-800">
                 YAYASAN PENDIDIKAN ISLAM DAN SOSIAL CIPUTAT
@@ -557,11 +558,11 @@ export const StatusCheckPage: React.FC<StatusCheckPageProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end gap-2">
+            <div className="pt-2 flex justify-end gap-2 no-print">
               <Button variant="outline" onClick={() => setShowSKModal(false)} className="text-xs py-1.5 cursor-pointer">
                 Tutup
               </Button>
-              <Button onClick={() => window.print()} className="text-xs py-1.5 bg-indigo-700 cursor-pointer">
+              <Button onClick={() => printElement(document.getElementById('sk-print-area'))} className="text-xs py-1.5 bg-indigo-700 cursor-pointer">
                 <Printer className="w-3.5 h-3.5" /> Cetak Dokumen SK Resmi
               </Button>
             </div>

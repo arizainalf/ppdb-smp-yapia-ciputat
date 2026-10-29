@@ -15,6 +15,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { Button } from '../common/Button.js';
+import { printElement } from '../../utils/print.js';
 import { useAuth } from '../../../application/contexts/AuthContext.js';
 
 export interface AdminCalonSiswaItem {
@@ -644,7 +645,7 @@ export const PendaftarDetailDrawer: React.FC<DrawerProps> = ({
 
           {/* TAB 5: SURAT KEPUTUSAN (SK) KELULUSAN RESMI */}
           {activeTab === 'sk' && (
-            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+            <div id="sk-print-area" className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
               <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-xs max-w-2xl mx-auto space-y-4 text-slate-900 font-serif">
                 {/* Kop Surat */}
                 <div className="text-center border-b-2 border-slate-900 pb-3 font-sans">
@@ -701,8 +702,8 @@ export const PendaftarDetailDrawer: React.FC<DrawerProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-center">
-                <Button onClick={() => window.print()} className="text-xs py-2 bg-indigo-600 hover:bg-indigo-700">
+              <div className="flex justify-center no-print">
+                <Button onClick={() => printElement(document.getElementById('sk-print-area'))} className="text-xs py-2 bg-indigo-600 hover:bg-indigo-700">
                   <Printer className="w-4 h-4" /> Cetak / Unduh Dokumen SK Resmi PDF
                 </Button>
               </div>

@@ -76,7 +76,7 @@ export const Footer: React.FC = () => {
           <p className="mb-4 leading-relaxed">{kontak.jadwalPelayanan}</p>
           <div className="p-3 bg-slate-800/80 rounded-lg border border-slate-700/60">
             <p className="text-[11px] text-slate-300">
-              💡 <strong>Catatan:</strong> Pendaftaran online melalui website ini aktif 24 jam setiap hari selama gelombang pendaftaran dibuka.
+            <strong>Catatan:</strong> Pendaftaran online melalui website ini aktif 24 jam setiap hari selama gelombang pendaftaran dibuka.
             </p>
           </div>
         </div>
