@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (noHp: string, password: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
   loginPendaftar: (noHp: string, email: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
   loginWithGoogle: (credential: string) => Promise<{ success: boolean; user?: UserDTO; message?: string }>;
+  changePassword: (passwordLama: string, passwordBaru: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 }
 
@@ -96,6 +97,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changePassword = async (
+    passwordLama: string,
+    passwordBaru: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/change-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ passwordLama, passwordBaru }),
+        }
+      );
+
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.status === 'success') {
+        return { success: true, message: data.message };
+      }
+      if (res.status === 404) {
+        return {
+          success: false,
+          message: 'Endpoint ubah kata sandi belum tersedia di server. Deploy backend ke versi terbaru terlebih dahulu.',
+        };
+      }
+      return {
+        success: false,
+        message: data?.message || `Gagal mengubah kata sandi (HTTP ${res.status}).`,
+      };
+    } catch {
+      return { success: false, message: 'Koneksi ke backend gagal. Pastikan server backend aktif.' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -118,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         loginPendaftar,
         loginWithGoogle,
+        changePassword,
         logout,
       }}
     >

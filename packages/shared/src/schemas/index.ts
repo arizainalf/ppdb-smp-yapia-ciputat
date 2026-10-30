@@ -47,3 +47,10 @@ export const loginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const changePasswordSchema = z.object({
+  passwordLama: z.string().min(1, 'Kata sandi lama wajib diisi'),
+  passwordBaru: z.string().min(8, 'Kata sandi baru minimal 8 karakter'),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

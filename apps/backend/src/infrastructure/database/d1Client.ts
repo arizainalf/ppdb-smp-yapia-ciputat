@@ -200,12 +200,14 @@ export class D1Client {
         console.warn(`⚠️ [D1Client] Migrasi 0003 dilewati: ${migrasiErr.message}`);
       }
 
-      // Migrasi 0005: kolom google_sub untuk Sign in with Google (SQLite melarang
-      // UNIQUE pada ALTER TABLE ADD COLUMN, maka dibuat via unique index)
+      // Migrasi 0006: kolom google_sub untuk Sign in with Google (SQLite melarang
+      // UNIQUE pada ALTER TABLE ADD COLUMN, maka dibuat via unique index).
+      // Catatan: ini hanya untuk SQLite lokal — D1 produksi memakai file
+      // deploy/d1/migrations/0006_google_signin.sql.
       try {
         db.exec('ALTER TABLE users ADD COLUMN google_sub TEXT;');
         db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub);');
-        console.log('✅ [D1Client] Migrasi 0005 diterapkan: kolom users.google_sub');
+        console.log('✅ [D1Client] Migrasi 0006 diterapkan: kolom users.google_sub');
       } catch {
         // Kolom/index sudah ada — aman diabaikan
       }

@@ -117,34 +117,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     (el as any).rendered = true;
   };
 
-  const handleDemoSelect = async (role: 'KEPSEK' | 'OPERATOR' | 'BENDAHARA' | 'ADMIN' | 'PENDAFTAR') => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    if (role === 'PENDAFTAR') {
-      const res = await loginPendaftar('081299887766', 'pendaftar@yapia.sch.id');
-      setIsLoading(false);
-      if (res.success) {
-        handleSuccessRedirect('status');
-      } else {
-        setErrorMsg(res.message || 'Login orang tua gagal.');
-      }
-    } else {
-      const phoneMap = {
-        ADMIN: '081200000001',
-        OPERATOR: '081200000002',
-        KEPSEK: '081200000004',
-        BENDAHARA: '081200000005',
-      };
-      const res = await login(phoneMap[role], 'password123');
-      setIsLoading(false);
-      if (res.success) {
-        handleSuccessRedirect('admin');
-      } else {
-        setErrorMsg(res.message || 'Login panitia gagal.');
-      }
-    }
-  };
-
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/30 py-8 sm:py-12 px-4 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -461,101 +433,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <div ref={renderGoogleButton} className="flex justify-center" />
                 </form>
               )}
-
-              {/* Quick 1-Click Demo Section (For Evaluation / Testing) */}
-              <div className="border-t border-slate-200 pt-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Akses Cepat Pengujian (1-Klik Demo)
-                  </span>
-                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
-                    Siap Pakai
-                  </span>
-                </div>
-
-                {/* Demo Orang Tua */}
-                <button
-                  type="button"
-                  onClick={() => handleDemoSelect('PENDAFTAR')}
-                  className="w-full p-3 rounded-2xl border border-teal-300 bg-teal-50/70 hover:bg-teal-100 text-teal-950 font-semibold text-left transition-all flex items-center gap-3 shadow-2xs cursor-pointer group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 text-base shadow-xs group-hover:scale-105 transition-transform">
-                    👨‍👩‍👦
-                  </div>
-                  <div className="overflow-hidden flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs sm:text-sm text-teal-950">
-                        Demo Orang Tua (Alka Alhabsy)
-                      </span>
-                      <span className="text-[10px] font-black text-teal-800 bg-teal-200/70 px-2 py-0.5 rounded-full">
-                        Pendaftar
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-teal-700 truncate block mt-0.5">
-                      WA: 081299887766 • Email: pendaftar@yapia.sch.id
-                    </span>
-                  </div>
-                </button>
-
-                {/* Demo Panitia Buttons */}
-                <div className="grid grid-cols-2 gap-2.5 text-xs pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSelect('KEPSEK')}
-                    className="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100/70 text-indigo-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 text-xs">
-                      🎓
-                    </div>
-                    <div className="overflow-hidden">
-                      <span className="font-bold block text-xs truncate">Kepala Sekolah</span>
-                      <span className="text-[10px] text-indigo-600 block truncate">Via Aprilian</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSelect('OPERATOR')}
-                    className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-blue-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs">
-                      💻
-                    </div>
-                    <div className="overflow-hidden">
-                      <span className="font-bold block text-xs truncate">Operator Dapodik</span>
-                      <span className="text-[10px] text-blue-600 block truncate">Ruslan Setiawan</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSelect('BENDAHARA')}
-                    className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/70 text-amber-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0 text-xs">
-                      💵
-                    </div>
-                    <div className="overflow-hidden">
-                      <span className="font-bold block text-xs truncate">Bendahara PPDB</span>
-                      <span className="text-[10px] text-amber-700 block truncate">Verifikasi Infak</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSelect('ADMIN')}
-                    className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-900 font-semibold text-left transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs">
-                      👑
-                    </div>
-                    <div className="overflow-hidden">
-                      <span className="font-bold block text-xs truncate">Super Admin</span>
-                      <span className="text-[10px] text-emerald-700 block truncate">Akses Penuh</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
 
             </div>
           </div>

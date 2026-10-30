@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
-import { loginSchema } from '@yapia/shared';
+import { loginSchema, changePasswordSchema } from '@yapia/shared';
 import { d1Client } from '../../database/d1Client.js';
 import { verifyPassword, hashPassword } from '../../crypto/password.js';
 import { signJwt } from '../../crypto/jwt.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
 import { Context } from 'hono';
 
 function getJwtSecret(c: Context): string {
@@ -319,6 +320,92 @@ export function createAuthRouter(): Hono {
         {
           status: 'error',
           message: err.message || 'Terjadi kesalahan sistem saat login dengan Google.',
+        },
+        500
+      );
+    }
+  });
+
+  // ============================================================================
+  // 4. UBAH KATA SANDI (panitia yang sudah login)
+  // Identitas diambil dari klaim JWT (sub) — bukan dari body, agar pendaftar
+  // hanya bisa mengubah kata sandi akunnya sendiri.
+  // ============================================================================
+  router.post('/change-password', requireAuth(), async (c) => {
+    try {
+      const body = await c.req.json();
+      const validated = changePasswordSchema.safeParse(body);
+      if (!validated.success) {
+        return c.json(
+          {
+            status: 'fail',
+            message: 'Validasi data gagal',
+            errors: validated.error.errors,
+          },
+          400
+        );
+      }
+
+      const role = ((c.get as (k: string) => unknown)('userRole') as string) || undefined;
+      if (role === 'PENDAFTAR') {
+        return c.json(
+          { status: 'fail', message: 'Fitur ini hanya untuk akun panitia.' },
+          403
+        );
+      }
+
+      const userId = ((c.get as (k: string) => unknown)('userId') as string) || '';
+      const { passwordLama, passwordBaru } = validated.data;
+
+      const d1Res = await d1Client.query<any>(
+        'SELECT id, password_hash, is_active FROM users WHERE id = ? LIMIT 1',
+        [userId]
+      );
+      const userRow = d1Res.results[0];
+      if (!userRow) {
+        return c.json(
+          { status: 'fail', message: 'Akun panitia tidak ditemukan di database.' },
+          404
+        );
+      }
+      if (userRow.is_active !== 1) {
+        return c.json(
+          { status: 'fail', message: 'Akun panitia Anda dinonaktifkan oleh Administrator.' },
+          403
+        );
+      }
+
+      // Verifikasi kata sandi lama sebelum mengganti
+      const { ok } = await verifyPassword(passwordLama, userRow.password_hash);
+      if (!ok) {
+        return c.json(
+          { status: 'fail', message: 'Kata sandi lama salah. Silakan periksa kembali.' },
+          401
+        );
+      }
+
+      if (passwordLama === passwordBaru) {
+        return c.json(
+          { status: 'fail', message: 'Kata sandi baru tidak boleh sama dengan kata sandi lama.' },
+          400
+        );
+      }
+
+      const newHash = await hashPassword(passwordBaru);
+      await d1Client.query(
+        `UPDATE users SET password_hash = ?, updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE id = ?`,
+        [newHash, userId]
+      );
+
+      return c.json({
+        status: 'success',
+        message: 'Kata sandi berhasil diubah. Gunakan kata sandi baru pada login berikutnya.',
+      });
+    } catch (err: any) {
+      return c.json(
+        {
+          status: 'error',
+          message: err.message || 'Terjadi kesalahan sistem saat mengubah kata sandi.',
         },
         500
       );

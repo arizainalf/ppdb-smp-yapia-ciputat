@@ -36,6 +36,9 @@ npx wrangler secret put TRIPAY_PRIVATE_KEY
 npx wrangler secret put MANUAL_BANK_NAMA
 npx wrangler secret put MANUAL_BANK_NOMOR
 npx wrangler secret put MANUAL_BANK_ATAS_NAMA
+
+# WAJIB jika fitur Sign in with Google diaktifkan (login panitia via Google)
+npx wrangler secret put GOOGLE_CLIENT_ID
 ```
 
 Referensi lengkap daftar variabel: [`deploy/.env.example`](../deploy/.env.example).
@@ -47,6 +50,8 @@ File `apps/frontend/.env.production`:
 
 ```env
 VITE_API_URL=https://sipmb-api.11260103.workers.dev
+# WAJIB jika tombol "Sign in with Google" ditampilkan di halaman login panitia
+VITE_GOOGLE_CLIENT_ID=<client_id_dari_google_console>
 ```
 
 Ganti sesuai custom domain backend bila sudah terpasang.
@@ -80,6 +85,9 @@ npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/seed.sql --remote
 
    # Potongan biaya per gelombang (Bantuan Pemkot Tangsel)
    npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0005_potongan_biaya_gelombang.sql --remote
+
+   # Kolom users.google_sub untuk Sign in with Google
+   npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0006_google_signin.sql --remote
    ```
 3. Verifikasi:
    ```bash
