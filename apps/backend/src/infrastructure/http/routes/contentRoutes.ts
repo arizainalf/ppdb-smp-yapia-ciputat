@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
+import { withEdgeCache } from '../utils/edgeCache.js';
 import type { LandingContentDTO } from '@yapia/shared';
 
 export const DEFAULT_LANDING_CONTENT: LandingContentDTO = {
@@ -128,39 +129,43 @@ export function createContentRouter(): Hono {
   const router = new Hono();
 
   // 1. GET LANDING CONTENT (Public)
+  //    Konten CMS jarang berubah — di-cache 60 detik di edge untuk menekan query D1.
+  //    Request admin (ber-Authorization) bypass agar pratinjau CMS selalu segar.
   router.get('/landing', async (c) => {
     try {
-      const res = await d1Client.query<SiteContentRow>(
-        'SELECT * FROM site_content WHERE key = ? LIMIT 1',
-        ['landing_page']
-      );
+      return await withEdgeCache(c, async () => {
+        const res = await d1Client.query<SiteContentRow>(
+          'SELECT * FROM site_content WHERE key = ? LIMIT 1',
+          ['landing_page']
+        );
 
-      if (!res.results || res.results.length === 0) {
+        if (!res.results || res.results.length === 0) {
+          return c.json(
+            JSendPresenter.success(DEFAULT_LANDING_CONTENT, 'Default landing content loaded'),
+            200
+          );
+        }
+
+        const row = res.results[0];
+        const parsed = normalizeLegacyLanding(JSON.parse(row.value));
+
+        // Deep merge with DEFAULT_LANDING_CONTENT to ensure no missing keys
+        const merged: LandingContentDTO = {
+          hero: { ...DEFAULT_LANDING_CONTENT.hero, ...(parsed.hero || {}) },
+          metrics: Array.isArray(parsed.metrics) ? parsed.metrics : DEFAULT_LANDING_CONTENT.metrics,
+          syarat: { ...DEFAULT_LANDING_CONTENT.syarat, ...(parsed.syarat || {}) },
+          panduan: { ...DEFAULT_LANDING_CONTENT.panduan, ...(parsed.panduan || {}) },
+          cta: { ...DEFAULT_LANDING_CONTENT.cta, ...(parsed.cta || {}) },
+          kontak: { ...DEFAULT_LANDING_CONTENT.kontak, ...(parsed.kontak || {}) },
+          updatedAt: row.updated_at,
+          updatedBy: row.updated_by || undefined,
+        };
+
         return c.json(
-          JSendPresenter.success(DEFAULT_LANDING_CONTENT, 'Default landing content loaded'),
+          JSendPresenter.success(merged, 'Landing page content successfully retrieved'),
           200
         );
-      }
-
-      const row = res.results[0];
-      const parsed = normalizeLegacyLanding(JSON.parse(row.value));
-
-      // Deep merge with DEFAULT_LANDING_CONTENT to ensure no missing keys
-      const merged: LandingContentDTO = {
-        hero: { ...DEFAULT_LANDING_CONTENT.hero, ...(parsed.hero || {}) },
-        metrics: Array.isArray(parsed.metrics) ? parsed.metrics : DEFAULT_LANDING_CONTENT.metrics,
-        syarat: { ...DEFAULT_LANDING_CONTENT.syarat, ...(parsed.syarat || {}) },
-        panduan: { ...DEFAULT_LANDING_CONTENT.panduan, ...(parsed.panduan || {}) },
-        cta: { ...DEFAULT_LANDING_CONTENT.cta, ...(parsed.cta || {}) },
-        kontak: { ...DEFAULT_LANDING_CONTENT.kontak, ...(parsed.kontak || {}) },
-        updatedAt: row.updated_at,
-        updatedBy: row.updated_by || undefined,
-      };
-
-      return c.json(
-        JSendPresenter.success(merged, 'Landing page content successfully retrieved'),
-        200
-      );
+      });
     } catch (err: any) {
       console.error('Error fetching landing content:', err);
       // Failover safely to default

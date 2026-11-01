@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
+import { withEdgeCache } from '../utils/edgeCache.js';
 
 interface RawGelombang {
   id: number;
@@ -13,46 +14,46 @@ interface RawGelombang {
   potongan_biaya: number;
   is_active: number;
   created_at: string;
+  /** Hasil subquery COUNT per gelombang (dihitung dalam SATU query bersama) */
+  kuota_terisi: number;
 }
 
 export function createGelombangRouter(): Hono {
   const router = new Hono();
 
   // 1. GET ALL GELOMBANG (termasuk hitungan kuota terisi secara real-time)
+  //    Optimasi: kuota dihitung lewat subquery berkorelasi dalam SATU query
+  //    (memakai index idx_calon_siswa_gelombang_id), menggantikan pola lama
+  //    N+1 (satu COUNT(*) per gelombang) yang memicu lonjakan rows read D1.
+  //    Endpoint publik di-cache 60 detik di edge; request admin (ber-Authorization) bypass.
   router.get('/', async (c) => {
     try {
-      const res = await d1Client.query<RawGelombang>(
-        'SELECT * FROM gelombang_pendaftaran ORDER BY is_active DESC, id DESC'
-      );
+      return await withEdgeCache(c, async () => {
+        const res = await d1Client.query<RawGelombang>(
+          `SELECT g.*,
+                  (SELECT COUNT(*) FROM calon_siswa cs WHERE cs.gelombang_id = g.id) AS kuota_terisi
+           FROM gelombang_pendaftaran g
+           ORDER BY g.is_active DESC, g.id DESC`
+        );
 
-      // Hitung kuota terisi per gelombang dari tabel calon_siswa
-      const gelombangWithStats = await Promise.all(
-        res.results.map(async (g) => {
-          const countRes = await d1Client.query<{ total: number }>(
-            'SELECT COUNT(*) as total FROM calon_siswa WHERE gelombang_id = ?',
-            [g.id]
-          );
-          const terisi = countRes.results[0]?.total ?? 0;
+        const data = res.results.map((g) => ({
+          id: g.id,
+          namaGelombang: g.nama_gelombang,
+          tahunAjaran: g.tahun_ajaran,
+          tanggalBuka: g.tanggal_buka,
+          tanggalTutup: g.tanggal_tutup,
+          kuotaMaksimal: g.kuota_maksimal,
+          kuotaTerisi: g.kuota_terisi ?? 0,
+          biayaPendaftaran: g.biaya_pendaftaran,
+          potonganBiaya: g.potongan_biaya || 0,
+          isActive: Boolean(g.is_active),
+        }));
 
-          return {
-            id: g.id,
-            namaGelombang: g.nama_gelombang,
-            tahunAjaran: g.tahun_ajaran,
-            tanggalBuka: g.tanggal_buka,
-            tanggalTutup: g.tanggal_tutup,
-            kuotaMaksimal: g.kuota_maksimal,
-            kuotaTerisi: terisi,
-            biayaPendaftaran: g.biaya_pendaftaran,
-            potonganBiaya: g.potongan_biaya || 0,
-            isActive: Boolean(g.is_active),
-          };
-        })
-      );
-
-      return c.json(
-        JSendPresenter.success(gelombangWithStats, 'Data master gelombang berhasil diambil'),
-        200
-      );
+        return c.json(
+          JSendPresenter.success(data, 'Data master gelombang berhasil diambil'),
+          200
+        );
+      });
     } catch (err: any) {
       return c.json(JSendPresenter.error(err.message || 'Gagal mengambil data gelombang'), 500);
     }

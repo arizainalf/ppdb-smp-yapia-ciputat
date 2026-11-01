@@ -219,33 +219,30 @@ export const MASTER_WILAYAH: ProvinsiData[] = [
 // ------------------------------------------------------------------------------
 // ATURAN BISNIS: BANTUAN BIAYA PENDIDIKAN DARI PEMERINTAH KOTA TANGERANG SELATAN
 // ------------------------------------------------------------------------------
-// Bukan potongan dari sekolah, melainkan bantuan biaya pendidikan dari
-// Pemerintah Kota Tangerang Selatan bagi pendaftar berdomisili di Tangsel.
-// Nilai bantuan dipotong langsung dari tagihan biaya pendaftaran.
+// Poin 1: Untuk domisili bukan potongan biaya pendaftaran, melainkan Bantuan
+// Biaya Pendidikan dari Pemerintah Kota Tangerang Selatan sebesar Rp 1.800.000 / tahun.
 // ------------------------------------------------------------------------------
 export const BANTUAN_TANGSEL_CONFIG = {
-  // Nominal bantuan per tahun ajaran dari Pemkot Tangsel
-  NOMINAL: 1_800_000,
+  NOMINAL_PER_TAHUN: 1_800_000,
   TARGET_KOTA: 'Kota Tangerang Selatan',
   LABEL: 'Bantuan Biaya Pendidikan Pemerintah Kota Tangerang Selatan',
-  PERIODE_LABEL: 'per tahun ajaran',
+  PERIODE_LABEL: 'Rp 1.800.000 / tahun ajaran',
 };
 
-// Info keringanan pasca-daftar (tidak dihitung dalam tagihan pendaftaran;
-// diberlakukan setelah calon siswa resmi menjadi siswa).
+// Poin 3 & 4: Keringanan pasca-pendaftaran (setelah resmi diterima sebagai siswa)
 export const POTONGAN_SPP_YATIM = {
   NOMINAL_PER_BULAN: 50_000,
-  LABEL: 'Potongan SPP Anak Yatim',
+  LABEL: 'Potongan SPP Anak Yatim (Rp 50.000 / bulan)',
 };
 
 export const BEASISWA_RANKING = [
-  { peringkat: 1, bulanSpp: 3 },
-  { peringkat: 2, bulanSpp: 2 },
-  { peringkat: 3, bulanSpp: 1 },
+  { peringkat: 1, bulanSpp: 3, label: 'Ranking 1: Bebas SPP 3 Bulan' },
+  { peringkat: 2, bulanSpp: 2, label: 'Ranking 2: Bebas SPP 2 Bulan' },
+  { peringkat: 3, bulanSpp: 1, label: 'Ranking 3: Bebas SPP 1 Bulan' },
 ] as const;
 
 /**
- * Cek apakah kota/kabupaten memenuhi syarat bantuan biaya pendidikan Tangsel.
+ * Cek apakah kota/kabupaten memenuhi syarat Bantuan Pemkot Tangsel.
  * Toleran terhadap penulisan 'Kota Tangerang Selatan', 'Tangerang Selatan', atau 'Tangsel'.
  */
 export function isEligibleBantuanTangsel(kotaKabupaten?: string): boolean {
@@ -255,24 +252,22 @@ export function isEligibleBantuanTangsel(kotaKabupaten?: string): boolean {
 }
 
 export interface RincianBiayaPendaftaran {
-  /** Biaya normal di luar potongan gelombang (misal Rp 2.000.000) */
+  /** Biaya normal sebelum potongan (misal Rp 2.000.000) */
   biayaNormal: number;
-  /** Potongan harga sesuai gelombang pendaftaran (dari master gelombang) */
+  /** Potongan harga gelombang (Gel 1: Rp 800.000, Gel 2: Rp 200.000) */
   potonganGelombang: number;
-  /** Biaya setelah dipotong potongan gelombang */
-  biayaSetelahPotongan: number;
-  /** Nominal bantuan Pemkot Tangsel yang dipotong dari tagihan (0 bila tidak eligible) */
-  bantuanTangsel: number;
-  /** Tagihan akhir yang harus dibayar pendaftar */
+  /** Biaya akhir formulir yang wajib dibayar pendaftar */
   biayaAkhir: number;
+  /** Status hak Bantuan Pemkot Tangsel (Rp 1.800.000/th) */
   isBantuanTangsel: boolean;
+  nominalBantuanTangsel: number;
   keteranganBantuan?: string;
 }
 
 /**
  * Menghitung rincian biaya pendaftaran:
- * biaya normal - potongan gelombang - bantuan Pemkot Tangsel (jika domisili memenuhi syarat).
- * Tagihan tidak menjadi negatif (dibatasi minimal Rp 0).
+ * Biaya normal (misal 2.000.000) - Potongan Gelombang (Gel 1: 800.000 -> 1.200.000, Gel 2: 200.000 -> 1.800.000).
+ * Status bantuan Tangsel Rp 1.800.000/tahun disertakan sebagai hak siswa berdomisili Tangsel.
  */
 export function hitungBiayaPendaftaran(
   biayaNormal: number,
@@ -281,23 +276,18 @@ export function hitungBiayaPendaftaran(
 ): RincianBiayaPendaftaran {
   const normal = Math.max(0, Number(biayaNormal) || 0);
   const potongan = Math.min(normal, Math.max(0, Number(potonganGelombang) || 0));
-  const biayaSetelahPotongan = Math.max(0, normal - potongan);
+  const biayaAkhir = Math.max(0, normal - potongan);
 
   const eligible = isEligibleBantuanTangsel(kotaKabupaten);
-  const bantuan = eligible
-    ? Math.min(BANTUAN_TANGSEL_CONFIG.NOMINAL, biayaSetelahPotongan)
-    : 0;
-  const biayaAkhir = Math.max(0, biayaSetelahPotongan - bantuan);
 
   return {
     biayaNormal: normal,
     potonganGelombang: potongan,
-    biayaSetelahPotongan,
-    bantuanTangsel: bantuan,
     biayaAkhir,
     isBantuanTangsel: eligible,
+    nominalBantuanTangsel: eligible ? BANTUAN_TANGSEL_CONFIG.NOMINAL_PER_TAHUN : 0,
     keteranganBantuan: eligible
-      ? `${BANTUAN_TANGSEL_CONFIG.LABEL} (Rp ${BANTUAN_TANGSEL_CONFIG.NOMINAL.toLocaleString('id-ID')} ${BANTUAN_TANGSEL_CONFIG.PERIODE_LABEL})`
+      ? `${BANTUAN_TANGSEL_CONFIG.LABEL} (${BANTUAN_TANGSEL_CONFIG.PERIODE_LABEL})`
       : undefined,
   };
 }

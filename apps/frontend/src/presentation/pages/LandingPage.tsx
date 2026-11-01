@@ -398,8 +398,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </p>
               <p className="text-slate-600 leading-relaxed">
                 Bantuan biaya pendidikan dari Pemerintah Kota Tangerang Selatan sebesar
-                Rp 1.800.000/tahun ajaran bagi pendaftar berdomisili di Tangsel. Dipotong langsung
-                dari tagihan biaya pendaftaran.
+                Rp 1.800.000/tahun ajaran bagi calon siswa yang berdomisili di wilayah Kota Tangerang Selatan untuk meringankan biaya pendidikan tahunan.
               </p>
             </div>
             <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">

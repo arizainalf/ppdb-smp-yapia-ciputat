@@ -4,6 +4,7 @@ import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
 import { STATUS_PEMBAYARAN, METODE_PEMBAYARAN, hitungBiayaPendaftaran, RincianBiayaPendaftaran } from '@yapia/shared';
 import { requireAuth, requirePermission } from '../middlewares/authMiddleware.js';
+import { withEdgeCache } from '../utils/edgeCache.js';
 
 // =====================================================================
 // Konfigurasi Tripay & transfer manual (env: Cloudflare / process.env)
@@ -64,35 +65,30 @@ interface CalonSiswaRow {
 }
 
 async function findPendaftar(nomorPendaftaran: string): Promise<CalonSiswaRow | null> {
+  // Satu query dengan JOIN (menggantikan query terpisah ke orang_tua_wali
+  // yang menambah jumlah query D1 per request pembayaran)
   const res = await d1Client.query<any>(
     `SELECT cs.id, cs.nomor_pendaftaran as nomorPendaftaran, cs.nama_lengkap as namaLengkap,
             cs.email, cs.no_hp_siswa as noHpSiswa, cs.gelombang_id as gelombangId,
             g.nama_gelombang as namaGelombang, g.biaya_pendaftaran as biayaNormal,
-            g.potongan_biaya as potonganGelombang, al.kota_kabupaten as kotaKabupaten
+            g.potongan_biaya as potonganGelombang, al.kota_kabupaten as kotaKabupaten,
+            otw.no_hp as noHpOrtu
      FROM calon_siswa cs
      LEFT JOIN gelombang_pendaftaran g ON g.id = cs.gelombang_id
      LEFT JOIN alamat_siswa al ON al.calon_siswa_id = cs.id
+     LEFT JOIN orang_tua_wali otw ON otw.calon_siswa_id = cs.id
      WHERE UPPER(cs.nomor_pendaftaran) = UPPER(?)
      LIMIT 1`,
     [nomorPendaftaran]
   );
   const r = res.results[0];
   if (!r) return null;
-  // Ambil no HP ortu dari tabel orang_tua_wali (fallback)
-  let noHpOrtu: string | null = null;
-  try {
-    const otw = await d1Client.query<{ no_hp: string }>(
-      'SELECT no_hp FROM orang_tua_wali WHERE calon_siswa_id = ? LIMIT 1',
-      [r.id]
-    );
-    noHpOrtu = otw.results[0]?.no_hp || null;
-  } catch {}
   const rincianBiaya = hitungBiayaPendaftaran(
     Number(r.biayaNormal) || 0,
     Number(r.potonganGelombang) || 0,
     r.kotaKabupaten || undefined
   );
-  return { ...r, noHpOrtu, rincianBiaya };
+  return { ...r, rincianBiaya };
 }
 
 interface PembayaranRow {
@@ -148,6 +144,16 @@ async function findRekening(rekeningId?: string): Promise<RekeningRow | null> {
     [rekeningId]
   );
   return res.results[0] || null;
+}
+
+function toRekeningDTO(r: RekeningRow) {
+  return {
+    id: r.id,
+    namaBank: r.nama_bank,
+    nomorRekening: r.nomor_rekening,
+    atasNama: r.atas_nama,
+    isActive: Boolean(r.is_active),
+  };
 }
 
 // =====================================================================
@@ -522,19 +528,24 @@ export function createPembayaranRouter(): Hono {
   router.get('/rekening', async (c) => {
     try {
       const includeInactive = c.req.query('all') === '1';
-      const res = includeInactive
-        ? await d1Client.query<RekeningRow>('SELECT * FROM rekening_bank ORDER BY created_at ASC')
-        : await d1Client.query<RekeningRow>('SELECT * FROM rekening_bank WHERE is_active = 1 ORDER BY created_at ASC');
 
-      const items = res.results.map((r) => ({
-        id: r.id,
-        namaBank: r.nama_bank,
-        nomorRekening: r.nomor_rekening,
-        atasNama: r.atas_nama,
-        isActive: Boolean(r.is_active),
-      }));
+      // Varian publik (hanya rekening aktif) di-cache 60 detik di edge;
+      // varian admin (all=1, ber-Authorization) selalu segar.
+      if (includeInactive) {
+        const res = await d1Client.query<RekeningRow>(
+          'SELECT * FROM rekening_bank ORDER BY created_at ASC'
+        );
+        const items = res.results.map(toRekeningDTO);
+        return c.json(JSendPresenter.success(items), 200);
+      }
 
-      return c.json(JSendPresenter.success(items), 200);
+      return await withEdgeCache(c, async () => {
+        const res = await d1Client.query<RekeningRow>(
+          'SELECT id, nama_bank, nomor_rekening, atas_nama, is_active FROM rekening_bank WHERE is_active = 1 ORDER BY created_at ASC'
+        );
+        const items = res.results.map(toRekeningDTO);
+        return c.json(JSendPresenter.success(items), 200);
+      });
     } catch (err: any) {
       return c.json(JSendPresenter.error(err.message || 'Gagal mengambil data rekening'), 500);
     }

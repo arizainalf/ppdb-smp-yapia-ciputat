@@ -9,6 +9,9 @@ export interface CalonSiswaModel {
   tanggalLahir: string;
   agama: string;
   noHpSiswa?: string;
+  nik?: string;
+  noKk?: string;
+  anakKe?: number;
   statusPendaftaran:
     | 'DRAFT'
     | 'SUBMITTED'
@@ -38,6 +41,9 @@ export interface RegistrationFormData {
   tanggalLahir: string;
   agama: string;
   noHpSiswa?: string;
+  nik?: string;
+  noKk?: string;
+  anakKe?: number | string;
 
   // Bagian B: Pendidikan Sebelumnya & Fisik
   namaSekolahAsal: string;

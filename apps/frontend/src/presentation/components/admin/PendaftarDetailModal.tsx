@@ -25,6 +25,8 @@ export interface AdminCalonSiswaItem {
   nisn: string;
   nik?: string;
   noKk?: string;
+  anakKe?: number | null;
+  namaIbu?: string;
   sekolahAsal: string;
   npsnAsal?: string;
   kecamatanAsal?: string;

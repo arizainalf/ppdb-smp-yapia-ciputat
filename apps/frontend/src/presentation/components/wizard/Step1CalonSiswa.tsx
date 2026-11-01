@@ -10,6 +10,9 @@ export const Step1CalonSiswa: React.FC = () => {
 
   const [form, setForm] = useState<CreateCalonSiswaInput>({
     namaLengkap: formData.namaLengkap || '',
+    nik: formData.nik || '',
+    noKk: formData.noKk || '',
+    anakKe: formData.anakKe || '',
     jenisKelamin: formData.jenisKelamin || 'L',
     tempatLahir: formData.tempatLahir || '',
     tanggalLahir: formData.tanggalLahir || '',
@@ -44,7 +47,7 @@ export const Step1CalonSiswa: React.FC = () => {
         return;
       }
       const validated = createCalonSiswaSchema.parse(form);
-      await submitStep1(validated);
+      submitStep1(validated);
     } catch (err) {
       if (err instanceof z.ZodError) {
         const errors: Record<string, string> = {};
@@ -59,8 +62,8 @@ export const Step1CalonSiswa: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6 bg-white rounded-xl shadow-sm border border-slate-200">
       <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-lg font-bold text-slate-800">Tahap 1: Data Pribadi & Jalur Pendaftaran</h3>
-        <p className="text-xs text-slate-500">Pilih jalur pendaftaran dan isi data calon siswa sesuai dokumen resmi.</p>
+        <h3 className="text-lg font-bold text-slate-800">Tahap 1: Data Pribadi & Kependudukan Siswa</h3>
+        <p className="text-xs text-slate-500">Pilih jalur pendaftaran dan isi data calon siswa sesuai ijazah SD dan Kartu Keluarga.</p>
       </div>
 
       {error && (
@@ -114,7 +117,7 @@ export const Step1CalonSiswa: React.FC = () => {
                 className="text-amber-600"
               />
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">Pemegang KIP, PIP, KKS, atau SKTM (Subsidi Infak).</p>
+            <p className="text-[11px] text-slate-500 mt-1">Pemegang KIP, PIP, KKS, atau SKTM (Keringanan Infak).</p>
           </div>
 
           <div
@@ -167,7 +170,7 @@ export const Step1CalonSiswa: React.FC = () => {
       </div>
 
       <InputField
-        label="Nama Lengkap (Sesuai Ijazah)"
+        label="Nama Lengkap (Sesuai Ijazah SD)"
         name="namaLengkap"
         required
         value={form.namaLengkap}
@@ -175,6 +178,30 @@ export const Step1CalonSiswa: React.FC = () => {
         error={fieldErrors.namaLengkap}
         placeholder="Contoh: Muhammad Alka Alhabsy"
       />
+
+      {/* NIK & No KK Siswa (Kebutuhan Validasi Dapodik & Dukcapil) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InputField
+          label="NIK Calon Siswa (16 Digit)"
+          name="nik"
+          maxLength={16}
+          value={form.nik || ''}
+          onChange={handleChange}
+          error={fieldErrors.nik}
+          placeholder="16 digit angka sesuai Akta/KK"
+          helperText="Dibutuhkan untuk validasi NISN & Dapodik pusat"
+        />
+        <InputField
+          label="Nomor Kartu Keluarga (16 Digit)"
+          name="noKk"
+          maxLength={16}
+          value={form.noKk || ''}
+          onChange={handleChange}
+          error={fieldErrors.noKk}
+          placeholder="16 digit nomor KK resmi"
+          helperText="Tercantum di bagian atas lembar Kartu Keluarga"
+        />
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-semibold text-slate-700">
@@ -206,7 +233,7 @@ export const Step1CalonSiswa: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <InputField
           label="Tempat Lahir"
           name="tempatLahir"
@@ -224,6 +251,48 @@ export const Step1CalonSiswa: React.FC = () => {
           value={form.tanggalLahir}
           onChange={handleChange}
           error={fieldErrors.tanggalLahir}
+        />
+        <InputField
+          label="Anak Ke- (Dalam Keluarga)"
+          type="number"
+          name="anakKe"
+          min={1}
+          max={15}
+          value={form.anakKe || ''}
+          onChange={handleChange}
+          error={fieldErrors.anakKe}
+          placeholder="Contoh: 1, 2, 3..."
+          helperText="Data periodik buku induk Dapodik"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-slate-700">
+            Agama <span className="text-rose-500">*</span>
+          </label>
+          <select
+            name="agama"
+            value={form.agama}
+            onChange={handleChange}
+            className="px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:ring-emerald-100"
+          >
+            <option value="Islam">Islam</option>
+            <option value="Kristen Protestan">Kristen Protestan</option>
+            <option value="Katolik">Katolik</option>
+            <option value="Hindu">Hindu</option>
+            <option value="Buddha">Buddha</option>
+            <option value="Konghucu">Konghucu</option>
+          </select>
+        </div>
+
+        <InputField
+          label="Nomor Handphone / WhatsApp Siswa (Opsional)"
+          name="noHpSiswa"
+          value={form.noHpSiswa || ''}
+          onChange={handleChange}
+          error={fieldErrors.noHpSiswa}
+          placeholder="0812XXXXXXXX (Dapat dikosongkan bila pakai No HP Ortu)"
         />
       </div>
 

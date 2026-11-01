@@ -14,7 +14,13 @@ interface RawD1CalonSiswa {
   agama: string;
   email?: string;
   no_hp_siswa?: string;
+  nik?: string;
+  no_kk?: string;
+  anak_ke?: number;
   status_pendaftaran: string;
+  jalur_pendaftaran?: 'REGULER' | 'AFIRMASI' | 'PRESTASI';
+  nomor_kip_sktm?: string;
+  pdp_consent?: number;
   created_at: string;
   updated_at: string;
 }
@@ -41,7 +47,13 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
       tanggalLahir: row.tanggal_lahir,
       agama: row.agama,
       noHpSiswa: row.no_hp_siswa,
+      nik: row.nik,
+      noKk: row.no_kk,
+      anakKe: row.anak_ke,
       statusPendaftaran: row.status_pendaftaran as any,
+      jalurPendaftaran: row.jalur_pendaftaran,
+      nomorKipSktm: row.nomor_kip_sktm,
+      pdpConsent: Boolean(row.pdp_consent),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     });
@@ -68,7 +80,13 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
       tanggalLahir: row.tanggal_lahir,
       agama: row.agama,
       noHpSiswa: row.no_hp_siswa,
+      nik: row.nik,
+      noKk: row.no_kk,
+      anakKe: row.anak_ke,
       statusPendaftaran: row.status_pendaftaran as any,
+      jalurPendaftaran: row.jalur_pendaftaran,
+      nomorKipSktm: row.nomor_kip_sktm,
+      pdpConsent: Boolean(row.pdp_consent),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     });
@@ -93,7 +111,13 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
           tanggalLahir: row.tanggal_lahir,
           agama: row.agama,
           noHpSiswa: row.no_hp_siswa,
+          nik: row.nik,
+          noKk: row.no_kk,
+          anakKe: row.anak_ke,
           statusPendaftaran: row.status_pendaftaran as any,
+          jalurPendaftaran: row.jalur_pendaftaran,
+          nomorKipSktm: row.nomor_kip_sktm,
+          pdpConsent: Boolean(row.pdp_consent),
           createdAt: row.created_at,
           updatedAt: row.updated_at,
         })
@@ -132,9 +156,10 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
       `INSERT INTO calon_siswa (
         id, user_id, gelombang_id, nomor_pendaftaran, nama_lengkap, email,
         jenis_kelamin, tempat_lahir, tanggal_lahir, agama, no_hp_siswa,
+        nik, no_kk, anak_ke,
         status_pendaftaran, jalur_pendaftaran, nomor_kip_sktm, pdp_consent,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         p.id,
         validUserId,
@@ -147,6 +172,9 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
         p.tanggalLahir,
         p.agama,
         p.noHpSiswa ?? null,
+        p.nik ?? null,
+        p.noKk ?? null,
+        p.anakKe ? Number(p.anakKe) : null,
         p.statusPendaftaran,
         p.jalurPendaftaran ?? 'REGULER',
         p.nomorKipSktm ?? null,
@@ -168,8 +196,6 @@ export class D1CalonSiswaRepository implements ICalonSiswaRepository {
   }
 
   public async generateNomorPendaftaran(gelombangId: number): Promise<string> {
-    // Lanjutkan dari urutan tertinggi yang pernah terpakai (bukan COUNT),
-    // agar nomor tidak ter-issues ulang setelah ada baris yang dihapus.
     const res = await d1Client.query<{ maks: number | null }>(
       `SELECT MAX(CAST(SUBSTR(nomor_pendaftaran, -4) AS INTEGER)) as maks
        FROM calon_siswa WHERE gelombang_id = ?`,

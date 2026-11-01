@@ -10,10 +10,16 @@ import { createHelpdeskRouter } from './infrastructure/http/routes/helpdeskRoute
 import { createPembayaranRouter } from './infrastructure/http/routes/pembayaranRoutes.js';
 import { createPengaturanRouter } from './infrastructure/http/routes/pengaturanRoutes.js';
 import { d1Client } from './infrastructure/database/d1Client.js';
+import { generalRateLimit, heavyRateLimit } from './infrastructure/http/middlewares/rateLimit.js';
+import { apiGuard } from './infrastructure/http/middlewares/apiGuard.js';
 
 export type Bindings = {
   DB: any;
   JWT_SECRET?: string;
+  GOOGLE_CLIENT_ID?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  API_GUARD?: string;
+  ALLOWED_ORIGINS?: string;
 };
 
 export function createApp() {
@@ -22,6 +28,25 @@ export function createApp() {
   // Global Middlewares
   app.use('*', logger());
   app.use('*', cors());
+
+  // ------------------------------------------------------------------
+  // PROTEKSI API:
+  // 1. apiGuard   : menolak akses langsung tanpa Origin/header aplikasi
+  //                 (anti curl/scraper). Webhook Tripay & /health dikecualikan.
+  // 2. rate limit : 60 req/menit/IP untuk seluruh API (env RATE_LIMIT_GLOBAL).
+  // ------------------------------------------------------------------
+  app.use('/api/v1/*', apiGuard());
+  app.use('/api/v1/*', generalRateLimit());
+
+  // Endpoint berat (query D1 banyak baris / publik menulis):
+  // 10 req/menit/IP (env RATE_LIMIT_SEARCH, RATE_LIMIT_PAYMENT, RATE_LIMIT_AUTH)
+  app.use('/api/v1/calon-siswa/*', heavyRateLimit('search'));
+  app.use('/api/v1/pembayaran/create', heavyRateLimit('payment'));
+  app.use('/api/v1/pembayaran/status/*', heavyRateLimit('payment'));
+  app.use('/api/v1/auth/login', heavyRateLimit('auth'));
+  app.use('/api/v1/auth/login-pendaftar', heavyRateLimit('auth'));
+  app.use('/api/v1/auth/google', heavyRateLimit('auth'));
+  app.use('/api/v1/helpdesk/tickets', heavyRateLimit('helpdesk'));
 
   // Inject D1 Binding if running on Cloudflare Workers
   app.use('*', async (c, next) => {

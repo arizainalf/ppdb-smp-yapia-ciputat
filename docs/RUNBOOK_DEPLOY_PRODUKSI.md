@@ -88,6 +88,9 @@ npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/seed.sql --remote
 
    # Kolom users.google_sub untuk Sign in with Google
    npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0006_google_signin.sql --remote
+
+   # Indeks performa D1 (mengatasi lonjakan rows read pada endpoint publik)
+   npx wrangler d1 execute yapia_sipmb_db --file=deploy/d1/migrations/0007_index_performa_d1.sql --remote
    ```
 3. Verifikasi:
    ```bash

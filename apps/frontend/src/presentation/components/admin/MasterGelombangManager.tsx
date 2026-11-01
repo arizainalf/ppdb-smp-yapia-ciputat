@@ -400,8 +400,7 @@ export const MasterGelombangManager: React.FC = () => {
               </div>
 
               <p className="text-[11px] text-slate-500 -mt-2">
-                Tagihan pendaftar = biaya normal &minus; potongan gelombang &minus; bantuan Pemkot Tangsel
-                (Rp 1.800.000, otomatis untuk domisili Kota Tangerang Selatan).
+                Tagihan formulir = Biaya normal &minus; Potongan gelombang. Calon siswa berdomisili Kota Tangerang Selatan berhak diajukan menerima Bantuan Biaya Pendidikan Daerah Pemkot Tangsel sebesar Rp 1.800.000 / tahun ajaran.
               </p>
 
               <div className="pt-2">

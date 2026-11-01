@@ -36,6 +36,8 @@ export const PendaftarTable: React.FC<TableProps> = ({
       item.namaLengkap.toLowerCase().includes(search.toLowerCase()) ||
       item.nomorPendaftaran.toLowerCase().includes(search.toLowerCase()) ||
       item.nisn.includes(search) ||
+      (item.nik && item.nik.includes(search)) ||
+      (item.noKk && item.noKk.includes(search)) ||
       item.sekolahAsal.toLowerCase().includes(search.toLowerCase()) ||
       (item.nomorKipSktm && item.nomorKipSktm.toLowerCase().includes(search.toLowerCase()));
 

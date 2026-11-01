@@ -200,6 +200,17 @@ export class D1Client {
         console.warn(`⚠️ [D1Client] Migrasi 0003 dilewati: ${migrasiErr.message}`);
       }
 
+      // Migrasi 0007: indeks performa D1 (paritas dengan file migrasi remote)
+      try {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_calon_siswa_gelombang_id ON calon_siswa(gelombang_id);');
+        db.exec(
+          'CREATE INDEX IF NOT EXISTS idx_pembayaran_calon_siswa ON pembayaran_pendaftaran(calon_siswa_id, created_at DESC);'
+        );
+        console.log('✅ [D1Client] Migrasi 0007 diterapkan: indeks performa gelombang_id & pembayaran');
+      } catch {
+        // Indeks sudah ada — aman diabaikan
+      }
+
       // Migrasi 0006: kolom google_sub untuk Sign in with Google (SQLite melarang
       // UNIQUE pada ALTER TABLE ADD COLUMN, maka dibuat via unique index).
       // Catatan: ini hanya untuk SQLite lokal — D1 produksi memakai file

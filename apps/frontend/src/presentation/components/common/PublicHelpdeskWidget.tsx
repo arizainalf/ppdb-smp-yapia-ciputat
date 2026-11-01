@@ -1,4 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+// Cloudflare Turnstile (anti-bot) — hanya aktif jika VITE_TURNSTILE_SITE_KEY diisi.
+// Token hasil widget dikirim sebagai 'turnstileToken' di body tiket; diverifikasi
+// backend memakai TURNSTILE_SECRET_KEY (bila diset). Tanpa site key, widget tidak
+// dirender dan form tetap berfungsi normal (graceful degradation).
+const TURNSTILE_SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || '';
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+      reset: (widgetId?: string) => void;
+      remove: (widgetId?: string) => void;
+    };
+  }
+}
 import {
   Headphones,
   X,
@@ -127,6 +143,74 @@ export const PublicHelpdeskWidget: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [ticketSuccess, setTicketSuccess] = useState<HelpdeskTicketDTO | null>(null);
   const [ticketError, setTicketError] = useState<string | null>(null);
+
+  // Turnstile widget (sekali pakai per submit, token kedaluwarsa ±5 menit)
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileRenderedFor = useRef<string>('');
+
+  const resetTurnstile = () => {
+    const ts = window.turnstile;
+    if (ts && turnstileWidgetIdRef.current !== null) {
+      try {
+        ts.remove(turnstileWidgetIdRef.current);
+      } catch {
+        /* widget sudah tidak ada */
+      }
+      turnstileWidgetIdRef.current = null;
+    }
+    setTurnstileToken('');
+  };
+
+  useEffect(() => {
+    const formKey = `${activeTab}|${ticketSubTab}|${ticketSuccess ? 'done' : 'open'}`;
+    const shouldShow =
+      !!TURNSTILE_SITE_KEY && isOpen && activeTab === 'ticket' && ticketSubTab === 'create' && !ticketSuccess;
+
+    if (!shouldShow || turnstileRenderedFor.current === formKey) return;
+    let cancelled = false;
+
+    const tryRender = (attempt: number) => {
+      if (cancelled) return;
+      const ts = window.turnstile;
+      if (ts && turnstileContainerRef.current && turnstileWidgetIdRef.current === null) {
+        turnstileRenderedFor.current = formKey;
+        turnstileWidgetIdRef.current = ts.render(turnstileContainerRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: 'light',
+          callback: (token: string) => setTurnstileToken(token),
+          'expired-callback': () => setTurnstileToken(''),
+          'error-callback': () => setTurnstileToken(''),
+        });
+      } else if (attempt < 20) {
+        // script api.js dimuat async — tunggu hingga window.turnstile tersedia (maks ±5 dtk)
+        window.setTimeout(() => tryRender(attempt + 1), 250);
+      }
+    };
+    tryRender(0);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activeTab, ticketSubTab, ticketSuccess]);
+
+  useEffect(
+    () => () => {
+      // lepas widget saat komponen ditutup/unmount
+      const ts = window.turnstile;
+      if (ts && turnstileWidgetIdRef.current !== null) {
+        try {
+          ts.remove(turnstileWidgetIdRef.current);
+        } catch {
+          /* abaikan */
+        }
+        turnstileWidgetIdRef.current = null;
+        turnstileRenderedFor.current = '';
+      }
+    },
+    [isOpen]
+  );
   const [copiedTicket, setCopiedTicket] = useState(false);
 
   // Tracking States
@@ -151,12 +235,20 @@ export const PublicHelpdeskWidget: React.FC = () => {
       return;
     }
 
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setTicketError('Mohon selesaikan verifikasi keamanan (ceklis kotak "Verifikasi Anda Manusia") terlebih dahulu.');
+      return;
+    }
+
     try {
       setSubmitting(true);
-      const res = await fetch('/api/v1/helpdesk/tickets', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/helpdesk/tickets`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ticketForm),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(TURNSTILE_SITE_KEY ? { ...ticketForm, turnstileToken } : ticketForm),
       });
 
       const json = await res.json();
@@ -165,6 +257,7 @@ export const PublicHelpdeskWidget: React.FC = () => {
       }
 
       setTicketSuccess(json.data);
+      resetTurnstile();
       setTicketForm({
         namaPengirim: '',
         noWhatsapp: '',
@@ -175,6 +268,16 @@ export const PublicHelpdeskWidget: React.FC = () => {
       });
     } catch (err: any) {
       setTicketError(err.message || 'Terjadi kesalahan saat membuat tiket');
+      // token Turnstile sekali pakai — minta challenge baru untuk percobaan berikutnya
+      const ts = window.turnstile;
+      if (TURNSTILE_SITE_KEY && ts && turnstileWidgetIdRef.current !== null) {
+        try {
+          ts.reset(turnstileWidgetIdRef.current);
+        } catch {
+          /* abaikan */
+        }
+        setTurnstileToken('');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -192,7 +295,10 @@ export const PublicHelpdeskWidget: React.FC = () => {
     try {
       setTracking(true);
       setTrackError(null);
-      const res = await fetch(`/api/v1/helpdesk/track?q=${encodeURIComponent(query.trim())}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/helpdesk/track?q=${encodeURIComponent(query.trim())}`,
+        { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+      );
       const json = await res.json();
 
       if (!res.ok || json.status === 'error' || json.status === 'fail') {
@@ -613,6 +719,17 @@ export const PublicHelpdeskWidget: React.FC = () => {
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
                           />
                         </div>
+
+                        {TURNSTILE_SITE_KEY && (
+                          <div className="flex flex-col items-center gap-1">
+                            <div ref={turnstileContainerRef} />
+                            {!turnstileToken && (
+                              <p className="text-[10px] text-slate-400 text-center">
+                                Selesaikan verifikasi di atas sebelum mengirim tiket.
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         <button
                           type="submit"

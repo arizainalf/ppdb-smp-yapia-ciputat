@@ -207,26 +207,16 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     </span>
                   </div>
                 )}
-                {rincian.isBantuanTangsel && (
-                  <div className="flex justify-between gap-2">
-                    <span className="text-slate-500">Bantuan Biaya Pendidikan Pemkot Tangsel</span>
-                    <span className="font-semibold text-emerald-700 shrink-0">
-                      &minus; {formatRupiah(rincian.bantuanTangsel)}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between items-center pt-1.5 border-t border-emerald-200/60">
-                  <span className="font-bold text-slate-700">Total dibayar</span>
-                  <span className="text-xl font-black text-slate-900">
+                  <span className="font-bold text-slate-700">Total Biaya Formulir</span>
+                  <span className="text-xl font-black text-emerald-700">
                     {formatRupiah(info?.jumlahBayar ?? rincian.biayaAkhir)}
                   </span>
                 </div>
                 {rincian.isBantuanTangsel && (
-                  <p className="text-[11px] leading-relaxed text-emerald-700">
-                    Domisili Anda tercatat di Kota Tangerang Selatan sehingga berhak atas bantuan biaya
-                    pendidikan dari Pemkot Tangsel sebesar Rp 1.800.000/tahun ajaran. Bantuan tersebut
-                    dipotong langsung dari tagihan pendaftaran ini.
-                  </p>
+                  <div className="mt-2 p-2.5 bg-emerald-100/70 border border-emerald-300 rounded-lg text-[11px] text-emerald-950 leading-relaxed">
+                    <strong>🏛️ Bantuan Pemkot Tangsel:</strong> Alamat domisili Anda tercatat di Kota Tangerang Selatan sehingga memenuhi syarat untuk diajukan menerima <strong>Bantuan Biaya Pendidikan Daerah sebesar Rp 1.800.000 / tahun</strong> ajaran di SMP YAPIA Ciputat.
+                  </div>
                 )}
               </div>
             ) : (

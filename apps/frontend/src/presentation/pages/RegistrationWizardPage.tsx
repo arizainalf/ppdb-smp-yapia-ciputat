@@ -82,11 +82,40 @@ const WizardContent: React.FC<WizardPageProps> = ({ onBackToHome }) => {
         jalurPendaftaran: (formData.jalurPendaftaran as any) || 'REGULER',
         nomorKipSktm: formData.nomorKipSktm || '',
         pdpConsent: true,
-        // Kaitkan relasi data ortu, sekolah asal, dan alamat ke database
+        // Data Kependudukan & Periodik Dapodik
+        nik: formData.nik || '',
+        noKk: formData.noKk || '',
+        anakKe: formData.anakKe ? Number(formData.anakKe) : undefined,
+
+        // Data Orang Tua & Wali Terstruktur
         namaOrtu: formData.namaAyah || formData.namaIbu || formData.namaWali || 'Wali Murid',
         noHpOrtu: formData.noHpAyah || formData.noHpIbu || formData.noHpWali || '',
+        namaAyah: formData.namaAyah || '',
+        statusAyah: formData.statusAyah || 'HIDUP',
+        pendidikanAyah: formData.pendidikanAyah || '',
+        tahunLahirAyah: formData.tahunLahirAyah || '',
+        pekerjaanAyah: formData.pekerjaanAyah || '',
+        penghasilanAyah: formData.penghasilanAyah || '',
+        noHpAyah: formData.noHpAyah || '',
+        namaIbu: formData.namaIbu || '',
+        statusIbu: formData.statusIbu || 'HIDUP',
+        pendidikanIbu: formData.pendidikanIbu || '',
+        tahunLahirIbu: formData.tahunLahirIbu || '',
+        pekerjaanIbu: formData.pekerjaanIbu || '',
+        penghasilanIbu: formData.penghasilanIbu || '',
+        noHpIbu: formData.noHpIbu || '',
+        namaWali: formData.namaWali || '',
+        hubunganWali: formData.hubunganWali || '',
+        pekerjaanWali: formData.pekerjaanWali || '',
+        noHpWali: formData.noHpWali || '',
+
+        // Data Sekolah Asal & Fisik
         sekolahAsal: formData.namaSekolahAsal || 'SD Negeri',
         nisn: formData.nisn || '',
+        tinggiBadan: formData.tinggiBadan || null,
+        beratBadan: formData.beratBadan || null,
+        golonganDarah: formData.golonganDarah || null,
+        penyakitBerat: formData.penyakitBerat || null,
         alamat: formData.alamatLengkap || '',
         // Alamat terstruktur: menentukan kelayakan Bantuan Biaya Pendidikan Pemkot Tangsel
         rt: formData.rt || '',

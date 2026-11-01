@@ -10,11 +10,15 @@ export const createCalonSiswaSchema = z.object({
   agama: z.string().min(2, 'Agama wajib diisi'),
   noHpSiswa: z.string().regex(/^08[0-9]{8,11}$/, 'Format nomor HP tidak valid').optional().or(z.literal('')),
   email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
+
+  // Data Kependudukan & Periodik Dapodik
+  nik: z.string().regex(/^\d{16}$/, 'NIK harus 16 digit angka').optional().or(z.literal('')),
+  noKk: z.string().regex(/^\d{16}$/, 'Nomor Kartu Keluarga harus 16 digit angka').optional().or(z.literal('')),
+  anakKe: z.number().int().positive().optional().or(z.string().optional()),
   
-  // Data Ortu & Sekolah
-  namaOrtu: z.string().optional().or(z.literal('')),
-  noHpOrtu: z.string().optional().or(z.literal('')),
+  // Data Sekolah Asal
   sekolahAsal: z.string().optional().or(z.literal('')),
+  npsnAsal: z.string().optional().or(z.literal('')),
   nisn: z.string().optional().or(z.literal('')),
   
   // Data Alamat & Domisili Terstruktur
@@ -28,6 +32,28 @@ export const createCalonSiswaSchema = z.object({
   provinsi: z.string().optional().or(z.literal('')),
   kodePos: z.string().optional().or(z.literal('')),
   tinggalBersama: z.string().optional().or(z.literal('')),
+
+  // Data Orang Tua & Wali Terstruktur (Sinkronisasi Dapodik sp.datadik)
+  namaOrtu: z.string().optional().or(z.literal('')),
+  noHpOrtu: z.string().optional().or(z.literal('')),
+  namaAyah: z.string().optional().or(z.literal('')),
+  statusAyah: z.string().optional().or(z.literal('')),
+  pendidikanAyah: z.string().optional().or(z.literal('')),
+  tahunLahirAyah: z.string().optional().or(z.literal('')),
+  pekerjaanAyah: z.string().optional().or(z.literal('')),
+  penghasilanAyah: z.string().optional().or(z.literal('')),
+  noHpAyah: z.string().optional().or(z.literal('')),
+  namaIbu: z.string().optional().or(z.literal('')),
+  statusIbu: z.string().optional().or(z.literal('')),
+  pendidikanIbu: z.string().optional().or(z.literal('')),
+  tahunLahirIbu: z.string().optional().or(z.literal('')),
+  pekerjaanIbu: z.string().optional().or(z.literal('')),
+  penghasilanIbu: z.string().optional().or(z.literal('')),
+  noHpIbu: z.string().optional().or(z.literal('')),
+  namaWali: z.string().optional().or(z.literal('')),
+  hubunganWali: z.string().optional().or(z.literal('')),
+  pekerjaanWali: z.string().optional().or(z.literal('')),
+  noHpWali: z.string().optional().or(z.literal('')),
 
   // Fitur Tata Kelola: Jalur & KIP/SKTM
   jalurPendaftaran: z.enum(['REGULER', 'AFIRMASI', 'PRESTASI']).default('REGULER'),

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import crypto from 'node:crypto';
 import { d1Client } from '../../database/d1Client.js';
 import { JSendPresenter } from '../../../interface-adapters/presenters/JSendPresenter.js';
+import { verifyTurnstile } from '../utils/turnstile.js';
 import type { HelpdeskTicketDTO, KategoriHelpdesk, StatusHelpdesk } from '@yapia/shared';
 
 interface RawHelpdeskTicket {
@@ -71,6 +72,12 @@ export function createHelpdeskRouter(): Hono {
 
       sql += ' ORDER BY created_at DESC';
 
+      // Paginasi opsional dengan batas default 200 baris (guardrail anti
+      // full table scan bila jumlah tiket membesar)
+      const limitParam = Number(c.req.query('limit')) || 200;
+      const offsetParam = Math.max(0, Number(c.req.query('offset')) || 0);
+      sql += ` LIMIT ${Math.min(limitParam, 200)} OFFSET ${offsetParam}`;
+
       const res = await d1Client.query<RawHelpdeskTicket>(sql, params);
       const data = res.results.map(mapToDTO);
 
@@ -94,14 +101,35 @@ export function createHelpdeskRouter(): Hono {
         );
       }
 
+      // Validasi Cloudflare Turnstile (AKTIF hanya bila TURNSTILE_SECRET_KEY diset;
+      // tanpa secret validasi dilewati agar pengembangan lokal tetap berjalan)
+      const turnstileSecret =
+        ((c.env as any)?.TURNSTILE_SECRET_KEY as string | undefined) || process.env?.TURNSTILE_SECRET_KEY;
+      if (turnstileSecret) {
+        const humanOk = await verifyTurnstile(
+          body.turnstileToken,
+          c.req.header('CF-Connecting-IP'),
+          turnstileSecret
+        );
+        if (!humanOk) {
+          return c.json(
+            JSendPresenter.fail('Verifikasi keamanan Turnstile gagal. Muat ulang halaman lalu coba lagi.'),
+            403
+          );
+        }
+      }
+
       const id = crypto.randomUUID();
 
-      // Hitung total tiket untuk format nomor unik: TKT-2026-XXXX
-      const countRes = await d1Client.query<{ total: number }>(
-        'SELECT COUNT(*) as total FROM helpdesk_tickets'
+      // Nomor urut tiket dari MAX nomor sebelumnya (bukan COUNT) agar:
+      // (1) tidak memicu full scan COUNT(*) di D1 pada endpoint publik, dan
+      // (2) aman dari duplikasi nomor bila ada baris yang dihapus.
+      const maxRes = await d1Client.query<{ maks: number | null }>(
+        `SELECT MAX(CAST(SUBSTR(ticket_number, -4) AS INTEGER)) as maks
+         FROM helpdesk_tickets WHERE ticket_number LIKE 'TKT-%'`
       );
-      const nextNum = (countRes.results[0]?.total ?? 0) + 1;
-      const ticketNumber = `TKT-2026-${String(nextNum).padStart(4, '0')}`;
+      const nextNum = (maxRes.results[0]?.maks ?? 0) + 1;
+      const ticketNumber = `TKT-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`;
 
       const nowIso = new Date().toISOString();
 

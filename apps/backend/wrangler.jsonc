@@ -6,7 +6,31 @@
     {
       "binding": "DB",
       "database_name": "yapia_sipmb_db",
-      "database_id": "2860805a-50d3-42a3-ab32-aca15f4516cb"
+      "database_id": "2860805a-50d3-42a3-ab32-aca15f4516cb",
+      "migrations_dir": "../../deploy/d1/migrations"
     }
-  ]
+  ],
+  // ------------------------------------------------------------------
+  // PROTEKSI API (lihat apps/backend/src/infrastructure/http/middlewares/)
+  // - API_GUARD      : "on" = tolak akses tanpa Origin/header aplikasi (anti curl/bot).
+  //                    Set "off" saat uji manual via curl/Postman.
+  // - ALLOWED_ORIGINS: daftar domain frontend resmi (koma terpisah). Tambahkan
+  //                    custom domain bila sudah dipasang.
+  // - RATE_LIMIT_*   : batas request/menit/IP per cakupan (tanpa redeploy kode
+  //                    bila diubah via dashboard).
+  // ------------------------------------------------------------------
+  "vars": {
+    "API_GUARD": "on",
+    "ALLOWED_ORIGINS": "https://sipmb.yapia-ciputat.web.id,https://ppdb-smp-yapia.pages.dev,http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173",
+    "RATE_LIMIT_GLOBAL": "60",
+    "RATE_LIMIT_SEARCH": "10",
+    "RATE_LIMIT_PAYMENT": "10",
+    "RATE_LIMIT_AUTH": "10",
+    "RATE_LIMIT_HELPDESK": "10"
+  }
+  // OPISIONAL (Workers Paid): rate limiter terdistribusi yang akurat.
+  // Aktifkan bersama secret TURNSTILE_SECRET_KEY bila dipakai.
+  // "ratelimit": [
+  //   { "name": "RATE_LIMITER", "namespace_id": "GANTI_DENGAN_ID_UNIK_ANDA" }
+  // ]
 }

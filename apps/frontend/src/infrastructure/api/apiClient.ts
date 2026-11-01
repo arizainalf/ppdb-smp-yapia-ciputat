@@ -39,6 +39,9 @@ class ApiClient {
     const token = localStorage.getItem('yapia_auth_token') || localStorage.getItem('sipmb_auth_token');
     const headers = new Headers(options.headers);
 
+    // Penanda request berasal dari aplikasi resmi (diperiksa oleh apiGuard backend)
+    headers.set('X-Requested-With', 'XMLHttpRequest');
+
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }

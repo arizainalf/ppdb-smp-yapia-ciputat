@@ -14,11 +14,20 @@ export class CalonSiswaController {
 
   public handleGetAll = async (c: Context) => {
     try {
+      // Guardrail D1: default maksimum 500 baris (anti full table scan bila
+      // jumlah pendaftar membesar). UI admin eksisting menampilkan < 500 baris.
+      const limitParam = Number(c.req.query('limit')) || 500;
+      const offsetParam = Math.max(0, Number(c.req.query('offset')) || 0);
+      const limitSql = ` LIMIT ${Math.min(limitParam, 500)} OFFSET ${offsetParam}`;
+
       const query = `
         SELECT
           cs.id,
           cs.nomor_pendaftaran as nomorPendaftaran,
           cs.nama_lengkap as namaLengkap,
+          cs.nik,
+          cs.no_kk as noKk,
+          cs.anak_ke as anakKe,
           sa.nisn,
           sa.nama_sekolah as sekolahAsal,
           sa.npsn as npsnAsal,
@@ -27,8 +36,9 @@ export class CalonSiswaController {
           cs.tempat_lahir as tempatLahir,
           cs.tanggal_lahir as tanggalLahir,
           cs.agama as agama,
-          al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan as alamat,
+          al.jalan || ' RT ' || COALESCE(al.rt, '-') || '/RW ' || COALESCE(al.rw, '-') || ', ' || COALESCE(al.kelurahan, '') || ', ' || COALESCE(al.kecamatan, '') as alamat,
           otw.nama_lengkap as namaOrtu,
+          (SELECT nama_lengkap FROM orang_tua_wali WHERE calon_siswa_id = cs.id AND hubungan = 'IBU' LIMIT 1) as namaIbu,
           COALESCE(otw.no_hp, cs.no_hp_siswa) as noHpOrtu,
           cs.gelombang_id as gelombangId,
           cs.status_pendaftaran as status,
@@ -47,13 +57,21 @@ export class CalonSiswaController {
           EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'KARTU_KELUARGA') as berkasKk,
           EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'AKTA_KELAHIRAN') as berkasAkta,
           EXISTS(SELECT 1 FROM berkas_pendaftaran b WHERE b.calon_siswa_id = cs.id AND b.jenis_berkas = 'FOTO') as berkasFoto,
-          (SELECT status_pembayaran FROM pembayaran_pendaftaran WHERE calon_siswa_id = cs.id ORDER BY created_at DESC LIMIT 1) as statusPembayaran,
-          (SELECT metode_pembayaran FROM pembayaran_pendaftaran WHERE calon_siswa_id = cs.id ORDER BY created_at DESC LIMIT 1) as metodePembayaran
+          pay.status_pembayaran as statusPembayaran,
+          pay.metode_pembayaran as metodePembayaran
         FROM calon_siswa cs
         LEFT JOIN sekolah_asal sa ON cs.id = sa.calon_siswa_id
         LEFT JOIN alamat_siswa al ON cs.id = al.calon_siswa_id
-        LEFT JOIN orang_tua_wali otw ON cs.id = otw.calon_siswa_id
-        ORDER BY cs.created_at DESC
+        LEFT JOIN orang_tua_wali otw ON cs.id = otw.calon_siswa_id AND otw.hubungan = 'AYAH'
+        LEFT JOIN (
+          SELECT calon_siswa_id, status_pembayaran, metode_pembayaran
+          FROM (
+            SELECT calon_siswa_id, status_pembayaran, metode_pembayaran,
+                   ROW_NUMBER() OVER (PARTITION BY calon_siswa_id ORDER BY created_at DESC) AS rn
+            FROM pembayaran_pendaftaran
+          ) ranked WHERE ranked.rn = 1
+        ) pay ON pay.calon_siswa_id = cs.id
+        ORDER BY cs.created_at DESC${limitSql}
       `;
 
       const rows = await d1Client.query<any>(query);
@@ -62,6 +80,9 @@ export class CalonSiswaController {
         id: r.id,
         nomorPendaftaran: r.nomorPendaftaran,
         namaLengkap: r.namaLengkap,
+        nik: r.nik || '',
+        noKk: r.noKk || '',
+        anakKe: r.anakKe || null,
         nisn: r.nisn || '-',
         sekolahAsal: r.sekolahAsal || '-',
         npsnAsal: r.npsnAsal || '-',
@@ -71,7 +92,8 @@ export class CalonSiswaController {
         tanggalLahir: r.tanggalLahir,
         agama: r.agama,
         alamat: r.alamat || '-',
-        namaOrtu: r.namaOrtu || '-',
+        namaOrtu: r.namaOrtu || r.namaIbu || '-',
+        namaIbu: r.namaIbu || '-',
         noHpOrtu: r.noHpOrtu || '-',
         gelombangId: r.gelombangId,
         status: r.status,
@@ -122,8 +144,7 @@ export class CalonSiswaController {
         return c.json(JSendPresenter.fail('Parameter query wajib disertakan'), 400);
       }
 
-      // Pencocokan kondisional: hanya terapkan LIKE email/NISN/HP jika input
-      // benar-benar berformat tersebut, agar input acak tidak cocok semua baris.
+      // Pencocokan kondisional: hanya terapkan LIKE email/NISN/NIK/HP jika input sesuai
       const digits = q.replace(/[^0-9]/g, '');
       const conditions: string[] = ['cs.id = ?', 'UPPER(cs.nomor_pendaftaran) = UPPER(?)'];
       const params: any[] = [q, q];
@@ -131,6 +152,10 @@ export class CalonSiswaController {
       if (q.includes('@')) {
         conditions.push('LOWER(cs.email) = LOWER(?)');
         params.push(q.trim().toLowerCase());
+      }
+      if (/^[0-9]{16}$/.test(digits)) {
+        conditions.push('cs.nik = ?');
+        params.push(digits);
       }
       if (/^[0-9]{10}$/.test(digits)) {
         conditions.push('sa.nisn = ?');
@@ -150,6 +175,9 @@ export class CalonSiswaController {
           cs.id,
           cs.nomor_pendaftaran as nomorPendaftaran,
           cs.nama_lengkap as namaLengkap,
+          cs.nik,
+          cs.no_kk as noKk,
+          cs.anak_ke as anakKe,
           sa.nisn,
           sa.nama_sekolah as sekolahAsal,
           sa.npsn as npsnAsal,
@@ -158,8 +186,9 @@ export class CalonSiswaController {
           cs.tempat_lahir as tempatLahir,
           cs.tanggal_lahir as tanggalLahir,
           cs.agama as agama,
-          al.jalan || ' RT ' || al.rt || '/RW ' || al.rw || ', ' || al.kelurahan || ', ' || al.kecamatan as alamat,
+          al.jalan || ' RT ' || COALESCE(al.rt, '-') || '/RW ' || COALESCE(al.rw, '-') || ', ' || COALESCE(al.kelurahan, '') || ', ' || COALESCE(al.kecamatan, '') as alamat,
           otw.nama_lengkap as namaOrtu,
+          (SELECT nama_lengkap FROM orang_tua_wali WHERE calon_siswa_id = cs.id AND hubungan = 'IBU' LIMIT 1) as namaIbu,
           COALESCE(otw.no_hp, cs.no_hp_siswa) as noHpOrtu,
           cs.gelombang_id as gelombangId,
           cs.status_pendaftaran as status,
@@ -177,7 +206,7 @@ export class CalonSiswaController {
         FROM calon_siswa cs
         LEFT JOIN sekolah_asal sa ON cs.id = sa.calon_siswa_id
         LEFT JOIN alamat_siswa al ON cs.id = al.calon_siswa_id
-        LEFT JOIN orang_tua_wali otw ON cs.id = otw.calon_siswa_id
+        LEFT JOIN orang_tua_wali otw ON cs.id = otw.calon_siswa_id AND otw.hubungan = 'AYAH'
         WHERE ${whereSql}
         LIMIT 1
       `;
@@ -193,6 +222,9 @@ export class CalonSiswaController {
         id: r.id,
         nomorPendaftaran: r.nomorPendaftaran,
         namaLengkap: r.namaLengkap,
+        nik: r.nik || '',
+        noKk: r.noKk || '',
+        anakKe: r.anakKe || null,
         nisn: r.nisn || '-',
         sekolahAsal: r.sekolahAsal || '-',
         gelombang: r.gelombangId ? `Gelombang ${r.gelombangId} (T.A 2026/2027)` : '-',
@@ -319,43 +351,88 @@ export class CalonSiswaController {
 
       const result = await this.createUseCase.execute(validatedInput);
 
-      // Simpan data orang tua jika dikirim dalam body
-      if (body.namaOrtu || body.namaAyah || body.namaIbu || body.noHpOrtu || body.noHpSiswa) {
+      // Simpan data Orang Tua: Ayah (jika ada)
+      if (body.namaAyah || body.namaOrtu) {
         try {
           await d1Client.query(
-            `INSERT INTO orang_tua_wali (id, calon_siswa_id, hubungan, nama_lengkap, no_hp)
-             VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO orang_tua_wali (id, calon_siswa_id, hubungan, nama_lengkap, status_hidup, pendidikan_terakhir, tahun_lahir, pekerjaan, penghasilan_bulanan, no_hp)
+             VALUES (?, ?, 'AYAH', ?, ?, ?, ?, ?, ?, ?)`,
             [
               crypto.randomUUID(),
               result.id,
-              'AYAH',
-              body.namaOrtu || body.namaAyah || body.namaIbu || 'Wali Murid',
-              body.noHpOrtu || body.noHpSiswa || '-',
+              body.namaAyah || body.namaOrtu || 'Ayah Kandung',
+              body.statusAyah || 'HIDUP',
+              body.pendidikanAyah || null,
+              body.tahunLahirAyah || null,
+              body.pekerjaanAyah || null,
+              body.penghasilanAyah || null,
+              body.noHpAyah || body.noHpOrtu || body.noHpSiswa || '-',
             ]
           );
         } catch {}
       }
 
-      // Simpan data sekolah asal jika dikirim dalam body
+      // Simpan data Orang Tua: Ibu Kandung (kunci validasi Dapodik sp.datadik)
+      if (body.namaIbu) {
+        try {
+          await d1Client.query(
+            `INSERT INTO orang_tua_wali (id, calon_siswa_id, hubungan, nama_lengkap, status_hidup, pendidikan_terakhir, tahun_lahir, pekerjaan, penghasilan_bulanan, no_hp)
+             VALUES (?, ?, 'IBU', ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              crypto.randomUUID(),
+              result.id,
+              body.namaIbu,
+              body.statusIbu || 'HIDUP',
+              body.pendidikanIbu || null,
+              body.tahunLahirIbu || null,
+              body.pekerjaanIbu || null,
+              body.penghasilanIbu || null,
+              body.noHpIbu || null,
+            ]
+          );
+        } catch {}
+      }
+
+      // Simpan data Wali (opsional jika diisi)
+      if (body.namaWali) {
+        try {
+          await d1Client.query(
+            `INSERT INTO orang_tua_wali (id, calon_siswa_id, hubungan, nama_lengkap, pekerjaan, no_hp)
+             VALUES (?, ?, 'WALI', ?, ?, ?)`,
+            [
+              crypto.randomUUID(),
+              result.id,
+              body.namaWali,
+              body.pekerjaanWali || null,
+              body.noHpWali || null,
+            ]
+          );
+        } catch {}
+      }
+
+      // Simpan data sekolah asal & fisik siswa jika dikirim dalam body
       if (body.sekolahAsal || body.nisn) {
         try {
           await d1Client.query(
-            `INSERT INTO sekolah_asal (id, calon_siswa_id, nama_sekolah, npsn, nisn)
-             VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO sekolah_asal (id, calon_siswa_id, nama_sekolah, npsn, nisn, tinggi_badan, berat_badan, golongan_darah, penyakit_berat)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               crypto.randomUUID(),
               result.id,
               body.sekolahAsal || 'SD Negeri',
               body.npsnAsal || '',
               body.nisn || '0123456789',
+              body.tinggiBadan ? Number(body.tinggiBadan) : null,
+              body.beratBadan ? Number(body.beratBadan) : null,
+              body.golonganDarah || null,
+              body.penyakitBerat || null,
             ]
           );
         } catch {}
       }
 
-      // Simpan alamat terstruktur (dipakai untuk menentukan kelayakan
-      // Bantuan Biaya Pendidikan Pemkot Tangerang Selatan saat penagihan)
-      if (body.alamat || body.kotaKabupaten) {
+      // Simpan alamat terstruktur domisili
+      if (body.alamat || body.kotaKabupaten || body.kecamatan) {
         try {
           await d1Client.query(
             `INSERT INTO alamat_siswa (
@@ -371,9 +448,9 @@ export class CalonSiswaController {
               body.noRumah || null,
               body.kelurahan || 'Ciputat',
               body.kecamatan || 'Ciputat',
-              body.kotaKabupaten || 'Tangerang Selatan',
+              body.kotaKabupaten || 'Kota Tangerang Selatan',
               body.provinsi || 'Banten',
-              body.kodePos || null,
+              body.kodePos || '15411',
               body.tinggalBersama || 'Orang Tua',
             ]
           );

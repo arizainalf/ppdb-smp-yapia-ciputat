@@ -8,6 +8,9 @@ export interface CreateCalonSiswaInputDTO {
   tanggalLahir: string;
   agama: string;
   noHpSiswa?: string;
+  nik?: string;
+  noKk?: string;
+  anakKe?: number | string;
   jalurPendaftaran?: 'REGULER' | 'AFIRMASI' | 'PRESTASI';
   nomorKipSktm?: string;
   pdpConsent?: boolean;

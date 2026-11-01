@@ -13,6 +13,9 @@ export interface CalonSiswaProps {
   tanggalLahir: string;
   agama: string;
   noHpSiswa?: string;
+  nik?: string;
+  noKk?: string;
+  anakKe?: number;
   statusPendaftaran?: StatusPendaftaranType;
   jalurPendaftaran?: 'REGULER' | 'AFIRMASI' | 'PRESTASI';
   nomorKipSktm?: string;

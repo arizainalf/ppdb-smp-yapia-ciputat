@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRegistrationWizardContext } from '../../../application/contexts/RegistrationWizardContext.js';
 import { InputField } from '../common/InputField.js';
 import { Button } from '../common/Button.js';
-import { Users, User } from 'lucide-react';
+import { Users, User, HeartHandshake } from 'lucide-react';
 
 export const Step4OrangTua: React.FC = () => {
   const { formData, updateFormData, nextStep, prevStep } = useRegistrationWizardContext();
@@ -159,6 +159,15 @@ export const Step4OrangTua: React.FC = () => {
               Almarhum / Sudah Meninggal
             </label>
           </div>
+
+          {form.statusAyah === 'MENINGGAL' && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3 animate-in fade-in duration-200">
+              <HeartHandshake className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-emerald-950 leading-relaxed">
+                <strong>💚 Program Peduli Anak Yatim SMP YAPIA:</strong> Calon siswa dengan status ayah almarhum berhak mendapatkan potongan biaya SPP sebesar <strong>Rp 50.000 / bulan</strong> selama menempuh pendidikan di SMP YAPIA Ciputat.
+              </div>
+            </div>
+          )}
 
           <InputField
             label="Nama Lengkap Ayah"

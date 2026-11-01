@@ -48,6 +48,9 @@ CREATE TABLE IF NOT EXISTS calon_siswa (
     tanggal_lahir TEXT NOT NULL,
     agama TEXT NOT NULL,
     no_hp_siswa TEXT,
+    nik TEXT,
+    no_kk TEXT,
+    anak_ke INTEGER,
     status_pendaftaran TEXT NOT NULL DEFAULT 'DRAFT' CHECK(status_pendaftaran IN ('DRAFT', 'SUBMITTED', 'VERIFIED', 'LOLOS_SELEKSI', 'MENGIKUTI_MPLS', 'DITERIMA_RESMI', 'REVISI', 'REJECTED', 'CADANGAN', 'ACCEPTED')),
     
     -- Tata Kelola Afirmasi & KIP / SKTM
@@ -240,10 +243,12 @@ CREATE TABLE IF NOT EXISTS helpdesk_tickets (
 CREATE INDEX IF NOT EXISTS idx_calon_siswa_user_id ON calon_siswa(user_id);
 CREATE INDEX IF NOT EXISTS idx_calon_siswa_nomor_pendaftaran ON calon_siswa(nomor_pendaftaran);
 CREATE INDEX IF NOT EXISTS idx_calon_siswa_status ON calon_siswa(status_pendaftaran);
+CREATE INDEX IF NOT EXISTS idx_calon_siswa_gelombang_id ON calon_siswa(gelombang_id);
 CREATE INDEX IF NOT EXISTS idx_sekolah_asal_nisn ON sekolah_asal(nisn);
 CREATE INDEX IF NOT EXISTS idx_orang_tua_calon_siswa ON orang_tua_wali(calon_siswa_id);
 CREATE INDEX IF NOT EXISTS idx_berkas_calon_siswa ON berkas_pendaftaran(calon_siswa_id);
 CREATE INDEX IF NOT EXISTS idx_pembayaran_status ON pembayaran_pendaftaran(status_pembayaran);
+CREATE INDEX IF NOT EXISTS idx_pembayaran_calon_siswa ON pembayaran_pendaftaran(calon_siswa_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_helpdesk_status ON helpdesk_tickets(status);
 CREATE INDEX IF NOT EXISTS idx_helpdesk_no_whatsapp ON helpdesk_tickets(no_whatsapp);
 CREATE INDEX IF NOT EXISTS idx_helpdesk_ticket_number ON helpdesk_tickets(ticket_number);

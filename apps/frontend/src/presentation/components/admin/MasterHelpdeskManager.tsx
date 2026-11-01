@@ -71,7 +71,13 @@ export const MasterHelpdeskManager: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/v1/helpdesk/tickets');
+      const token = localStorage.getItem('yapia_auth_token') || localStorage.getItem('sipmb_auth_token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/helpdesk/tickets`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       const json = await res.json();
       if (!res.ok || json.status === 'error') {
         throw new Error(json.message || 'Gagal memuat daftar tiket');
@@ -103,9 +109,14 @@ export const MasterHelpdeskManager: React.FC = () => {
       setSavingResponse(true);
       setSaveSuccessMsg(null);
 
-      const res = await fetch(`/api/v1/helpdesk/tickets/${selectedTicket.id}`, {
+      const token = localStorage.getItem('yapia_auth_token') || localStorage.getItem('sipmb_auth_token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/helpdesk/tickets/${selectedTicket.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           status: responseStatus,
           tanggapanPanitia: responseTanggapan,
